@@ -25,6 +25,11 @@ final class CustomTabBarView: UIView {
     private var titleLabelsByTab: [TabIdentifier: UILabel] = [:]
     private var centerCircleByTab: [TabIdentifier: UIView] = [:]
 
+    // Геометрія заглиблення для анімації індикатора.
+    private var notchXLeft: CGFloat = 0
+    private var notchXRight: CGFloat = 0
+    private var notchDepth: CGFloat = 0
+
     init(
         items: [Item],
         selectedTab: TabIdentifier?,
@@ -154,19 +159,63 @@ final class CustomTabBarView: UIView {
         }
 
         let indicatorWidth = targetRect.width
-        let targetFrame = CGRect(x: targetRect.midX - indicatorWidth / 2, y: targetRect.minY, width: indicatorWidth, height: targetRect.height)
+        let indicatorHeight = targetRect.height
 
-        if animated {
-            UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut]) { [weak self] in
-                guard let self else { return }
-                self.indicatorLineView.frame = targetFrame
-                self.indicatorGradient.frame = self.indicatorLineView.bounds
-            }
-            animateShimmer(from: oldTab, to: tab)
-        } else {
-            indicatorLineView.frame = targetFrame
+        let targetCenterX = targetRect.midX
+        let targetCenterY = targetRect.midY + indicatorYOffset(forCenterX: targetCenterX)
+
+        if !animated || indicatorLineView.bounds == .zero {
+            indicatorLineView.bounds = CGRect(x: 0, y: 0, width: indicatorWidth, height: indicatorHeight)
+            indicatorLineView.center = CGPoint(x: targetCenterX, y: targetCenterY)
             indicatorGradient.frame = indicatorLineView.bounds
+            return
         }
+
+        // Гладка анімація вздовж заглиблення: keyframe по позиції.
+        let from = indicatorLineView.layer.position
+        let to = CGPoint(x: targetCenterX, y: targetCenterY)
+
+        // Оновлюємо final state без implicit-анімацій.
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        indicatorLineView.bounds = CGRect(x: 0, y: 0, width: indicatorWidth, height: indicatorHeight)
+        indicatorLineView.layer.position = to
+        indicatorGradient.frame = indicatorLineView.bounds
+        CATransaction.commit()
+
+        let steps = 24
+        var values: [NSValue] = []
+        values.reserveCapacity(steps + 1)
+        for i in 0...steps {
+            let t = CGFloat(i) / CGFloat(steps)
+            let x = from.x + (to.x - from.x) * t
+            let yBase = from.y + (to.y - from.y) * t
+            let y = yBase + indicatorYOffset(forCenterX: x)
+            values.append(NSValue(cgPoint: CGPoint(x: x, y: y)))
+        }
+
+        let anim = CAKeyframeAnimation(keyPath: "position")
+        anim.values = values
+        anim.duration = 0.25
+        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        indicatorLineView.layer.add(anim, forKey: "moveAlongNotch")
+
+        animateShimmer(from: oldTab, to: tab)
+    }
+
+    private func indicatorYOffset(forCenterX x: CGFloat) -> CGFloat {
+        // Якщо індикатор проходить над зоною заглиблення — він “пірнає”,
+        // інакше лишається на базовій висоті.
+        guard notchXRight > notchXLeft else { return 0 }
+        if x < notchXLeft || x > notchXRight { return 0 }
+
+        let mid = (notchXLeft + notchXRight) / 2
+        let half = (notchXRight - notchXLeft) / 2
+        if half <= 0 { return 0 }
+        let u = (x - mid) / half // -1...1
+        let parabola = max(0, 1 - (u * u)) // 0...1
+        // Масштабуємо, щоб індикатор йшов вздовж “верху” заглиблення.
+        return parabola * notchDepth * 0.55
     }
 
     private func animateShimmer(from oldTab: TabIdentifier?, to newTab: TabIdentifier) {
@@ -248,6 +297,11 @@ final class CustomTabBarView: UIView {
         bgPath.close()
         backgroundShapeLayer.path = bgPath.cgPath
         backgroundShapeLayer.frame = backgroundView.bounds
+
+        // Зберігаємо геометрію заглиблення в координатах Self (для індикатора).
+        self.notchXLeft = backgroundView.frame.minX + xLeft
+        self.notchXRight = backgroundView.frame.minX + xRight
+        self.notchDepth = notchDepth
 
         // Лінія підсвітки зверху (як на фото).
         let indicatorY = barTopY + 14 - contentLift
