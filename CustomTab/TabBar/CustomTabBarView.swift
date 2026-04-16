@@ -45,6 +45,9 @@ final class CustomTabBarView: UIView {
     private let centerIconSpinDuration: TimeInterval = 0.32
     private let centerIconScaleDuration: TimeInterval = 0.18
 
+    /// Зсув жовтого кола **вниз** (у pt). Більше значення — коло нижче (`circleY` збільшується).
+    private let centerCircleExtraDown: CGFloat = 0
+
     // Геометрія заглиблення для анімації індикатора.
     private var notchXLeft: CGFloat = 0
     private var notchXRight: CGFloat = 0
@@ -500,17 +503,14 @@ final class CustomTabBarView: UIView {
 
         // “Яма” під середньою кнопкою: малюємо ввігнуту форму верхнього краю TabBar.
         let centerIndex = items.firstIndex(where: { $0.isCenter }) ?? 0
-        let circleSize: CGFloat = 60
-        let circleY = barTopY - 40 - contentLift
         let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(centerIndex) + 0.5)
         let localCenterX = centerX - backgroundView.frame.minX
-        _ = circleY // використовується для вирівнювання кнопки відносно trough
 
         let notchWidth = min(backgroundView.bounds.width, slotWidth * 1.65)
         let notchDepth = min(34, max(20, 42 - contentLift))
         let xLeft = max(0, localCenterX - notchWidth / 2)
         let xRight = min(backgroundView.bounds.width, localCenterX + notchWidth / 2)
-        let yTop: CGFloat = 13 // регулює, наскільки “опущена” виямка
+        let yTop: CGFloat = 12 // регулює, наскільки “опущена” виямка
         let yBottom: CGFloat = yTop + notchDepth
 
         let w = backgroundView.bounds.width
@@ -581,8 +581,9 @@ final class CustomTabBarView: UIView {
             let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(index) + 0.5)
 
             if item.isCenter {
-                let circleSize: CGFloat = 60
-                let circleY = barTopY - 18 - contentLift
+                let circleSize: CGFloat = 63
+                // Вертикаль кола: базовий зсув від `barTopY`; `centerCircleExtraDown` опускає коло вниз.
+                let circleY = barTopY - 18 - contentLift + centerCircleExtraDown
                 if let circle = centerCircleByTab[tab] {
                     circle.frame = CGRect(x: centerX - circleSize / 2, y: circleY, width: circleSize, height: circleSize)
                     circle.layer.cornerRadius = circleSize / 2
@@ -599,7 +600,7 @@ final class CustomTabBarView: UIView {
 
                 // Tap area включає іконку + підпис.
                 let tapH: CGFloat = (barBottomY - barTopY) + 10
-                let tapY = barTopY - 22
+                let tapY = barTopY - 22 + centerCircleExtraDown
                 tapButtonsByTab[tab]?.frame = CGRect(x: centerX - slotWidth / 2, y: tapY, width: slotWidth, height: tapH)
 
                 // Підпис нижче, як на фото.
