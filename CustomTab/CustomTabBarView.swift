@@ -29,6 +29,7 @@ final class CustomTabBarView: UIView {
     private var notchXLeft: CGFloat = 0
     private var notchXRight: CGFloat = 0
     private var notchDepth: CGFloat = 0
+    private var notchSamples: [CGPoint] = [] // x в координатах Self, y = localYOffset (0...yBottom)
 
     init(
         items: [Item],
@@ -196,7 +197,7 @@ final class CustomTabBarView: UIView {
 
         let anim = CAKeyframeAnimation(keyPath: "position")
         anim.values = values
-        anim.duration = 0.25
+        anim.duration = 2.25
         anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         indicatorLineView.layer.add(anim, forKey: "moveAlongNotch")
 
@@ -204,18 +205,25 @@ final class CustomTabBarView: UIView {
     }
 
     private func indicatorYOffset(forCenterX x: CGFloat) -> CGFloat {
-        // Якщо індикатор проходить над зоною заглиблення — він “пірнає”,
-        // інакше лишається на базовій висоті.
-        guard notchXRight > notchXLeft else { return 0 }
-        if x < notchXLeft || x > notchXRight { return 0 }
+        // Точне слідування по кривій заглиблення: інтерполюємо yOffset
+        // по precomputed семплах тієї ж Bézier-кривої.
+        guard notchSamples.count >= 2 else { return 0 }
+        if x <= notchSamples[0].x { return notchSamples[0].y }
+        if x >= notchSamples[notchSamples.count - 1].x { return notchSamples[notchSamples.count - 1].y }
 
-        let mid = (notchXLeft + notchXRight) / 2
-        let half = (notchXRight - notchXLeft) / 2
-        if half <= 0 { return 0 }
-        let u = (x - mid) / half // -1...1
-        let parabola = max(0, 1 - (u * u)) // 0...1
-        // Масштабуємо, щоб індикатор йшов вздовж “верху” заглиблення.
-        return parabola * notchDepth * 0.55
+        var lo = 0
+        var hi = notchSamples.count - 1
+        while hi - lo > 1 {
+            let mid = (lo + hi) / 2
+            if notchSamples[mid].x < x { lo = mid } else { hi = mid }
+        }
+
+        let p0 = notchSamples[lo]
+        let p1 = notchSamples[hi]
+        let dx = p1.x - p0.x
+        if dx <= 0.0001 { return p0.y }
+        let t = (x - p0.x) / dx
+        return p0.y + (p1.y - p0.y) * t
     }
 
     private func animateShimmer(from oldTab: TabIdentifier?, to newTab: TabIdentifier) {
@@ -303,6 +311,17 @@ final class CustomTabBarView: UIView {
         self.notchXRight = backgroundView.frame.minX + xRight
         self.notchDepth = notchDepth
 
+        // Семпли кривої заглиблення для індикатора (y = localYOffset, x = координати Self)
+        self.notchSamples = makeNotchSamples(
+            bgMinX: backgroundView.frame.minX,
+            xLeft: xLeft,
+            xRight: xRight,
+            xMid: localCenterX,
+            yTop: 0,
+            yBottom: yBottom,
+            notchWidth: notchWidth
+        )
+
         // Лінія підсвітки зверху (як на фото).
         let indicatorY = barTopY + 14 - contentLift
         let indicatorHeight: CGFloat = 4
@@ -372,6 +391,56 @@ final class CustomTabBarView: UIView {
                 setSelectedTab(tab, animated: false)
             }
         }
+    }
+
+    private func makeNotchSamples(
+        bgMinX: CGFloat,
+        xLeft: CGFloat,
+        xRight: CGFloat,
+        xMid: CGFloat,
+        yTop: CGFloat,
+        yBottom: CGFloat,
+        notchWidth: CGFloat
+    ) -> [CGPoint] {
+        func cubic(_ t: CGFloat, _ p0: CGPoint, _ p1: CGPoint, _ p2: CGPoint, _ p3: CGPoint) -> CGPoint {
+            let mt = 1 - t
+            let a = mt * mt * mt
+            let b = 3 * mt * mt * t
+            let c = 3 * mt * t * t
+            let d = t * t * t
+            return CGPoint(
+                x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
+                y: a * p0.y + b * p1.y + c * p2.y + d * p3.y
+            )
+        }
+
+        let leftP0 = CGPoint(x: xLeft, y: yTop)
+        let leftP1 = CGPoint(x: xLeft + notchWidth * 0.25, y: yTop)
+        let leftP2 = CGPoint(x: xMid - notchWidth * 0.25, y: yBottom)
+        let leftP3 = CGPoint(x: xMid, y: yBottom)
+
+        let rightP0 = CGPoint(x: xMid, y: yBottom)
+        let rightP1 = CGPoint(x: xMid + notchWidth * 0.25, y: yBottom)
+        let rightP2 = CGPoint(x: xRight - notchWidth * 0.25, y: yTop)
+        let rightP3 = CGPoint(x: xRight, y: yTop)
+
+        let n = 72
+        var pts: [CGPoint] = []
+        pts.reserveCapacity(n * 2 + 1)
+
+        for i in 0...n {
+            let t = CGFloat(i) / CGFloat(n)
+            let p = cubic(t, leftP0, leftP1, leftP2, leftP3)
+            pts.append(CGPoint(x: bgMinX + p.x, y: p.y))
+        }
+        for i in 1...n {
+            let t = CGFloat(i) / CGFloat(n)
+            let p = cubic(t, rightP0, rightP1, rightP2, rightP3)
+            pts.append(CGPoint(x: bgMinX + p.x, y: p.y))
+        }
+
+        pts.sort { $0.x < $1.x }
+        return pts
     }
 }
 
