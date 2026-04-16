@@ -22,7 +22,8 @@ final class CustomTabBarView: UIView {
     private let indicatorSegmentsContainer = CALayer()
     private var indicatorSegments: [CALayer] = []
     private let indicatorSegmentsCount = 20
-    private let indicatorRibbonWidthScale: CGFloat = 0.72
+    private let indicatorRibbonWidthScale: CGFloat = 0.62
+    private let indicatorThicknessScale: CGFloat = 0.75
     private let indicatorSegmentFillFactor: CGFloat = 1.16
     private let indicatorMoveDuration: CFTimeInterval = 0.22
     private var indicatorCurrentCenterX: CGFloat?
@@ -35,8 +36,14 @@ final class CustomTabBarView: UIView {
     private var titleLabelsByTab: [TabIdentifier: UILabel] = [:]
     private var centerCircleByTab: [TabIdentifier: UIView] = [:]
 
-    private var centerToggled: Bool = false
-    private var centerAnimating: Bool = false
+    private var pendingMenuHighlight: DispatchWorkItem?
+
+    private var centerIconRotation: CGFloat = 0
+    private var centerIconScale: CGFloat = 1.0
+    private var isCenterIconAnimating: Bool = false
+    private let centerIconActiveScale: CGFloat = 1.16
+    private let centerIconSpinDuration: TimeInterval = 0.32
+    private let centerIconScaleDuration: TimeInterval = 0.18
 
     // Геометрія заглиблення для анімації індикатора.
     private var notchXLeft: CGFloat = 0
@@ -136,107 +143,84 @@ final class CustomTabBarView: UIView {
 
     @objc private func didTap(_ sender: UIButton) {
         guard let tab = TabIdentifier(rawValue: sender.tag) else { return }
-        if tab == .create {
-            toggleCenterButton(animated: true)
-        }
         onSelect?(tab)
     }
 
-    private func toggleCenterButton(animated: Bool) {
-        if centerAnimating { return }
-        centerToggled.toggle()
+    private func centerIconViewTransform(rotation: CGFloat, scale: CGFloat) -> CGAffineTransform {
+        CGAffineTransform(rotationAngle: rotation).scaledBy(x: scale, y: scale)
+    }
 
-        guard let circle = centerCircleByTab[.create],
-              let iconView = iconViewsByTab[.create] else { return }
+    private func updateCenterIconForSelection(from oldTab: TabIdentifier?, to newTab: TabIdentifier, animated: Bool) {
+        guard let icon = iconViewsByTab[.create] else { return }
 
-        let nextSymbol = centerToggled ? "xmark" : "list.bullet"
-        // 180° оберт при toggle.
-        let halfTurn = CGFloat.pi
-        let rotation = centerToggled ? halfTurn : -halfTurn
-
-        guard animated else {
-            iconView.image = UIImage(systemName: nextSymbol)
-            applyCenterGlow(to: circle, enabled: centerToggled, animated: false)
+        if newTab == .create {
+            if animated {
+                guard oldTab != .create else { return }
+                animateCenterIconSelect()
+            } else if !isCenterIconAnimating {
+                centerIconScale = centerIconActiveScale
+                icon.transform = centerIconViewTransform(rotation: centerIconRotation, scale: centerIconScale)
+            }
             return
         }
 
-        centerAnimating = true
-
-        CATransaction.begin()
-        CATransaction.setCompletionBlock { [weak self] in
-            guard let self else { return }
-            UIView.transition(with: iconView, duration: 0.12, options: [.transitionCrossDissolve, .allowUserInteraction]) {
-                iconView.image = UIImage(systemName: nextSymbol)
-            } completion: { _ in
-                self.applyCenterGlow(to: circle, enabled: self.centerToggled, animated: true)
-                self.centerAnimating = false
-            }
+        guard oldTab == .create else { return }
+        if animated {
+            animateCenterIconDeselect()
+        } else if !isCenterIconAnimating {
+            centerIconRotation = 0
+            centerIconScale = 1.0
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            icon.transform = .identity
+            CATransaction.commit()
         }
-
-        let spinDuration: CFTimeInterval = 0.32
-        let spin = CABasicAnimation(keyPath: "transform.rotation.z")
-        spin.duration = spinDuration
-        spin.fromValue = 0
-        spin.toValue = rotation
-        spin.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        spin.isAdditive = true
-
-        circle.layer.add(spin, forKey: "centerSpin")
-        iconView.layer.add(spin, forKey: "centerSpin")
-
-        CATransaction.commit()
     }
 
-    private func applyCenterGlow(to circle: UIView, enabled: Bool, animated: Bool) {
-        let changes = {
-            if enabled {
-                // Glow по всіх боках (золотий).
-                circle.layer.shadowColor = UIColor.systemYellow.cgColor
-                circle.layer.shadowOpacity = 0.85
-                circle.layer.shadowRadius = 18
-                circle.layer.shadowOffset = .zero
-            } else {
-                // Звичайна тінь вниз (як було).
-                circle.layer.shadowColor = UIColor.black.cgColor
-                circle.layer.shadowOpacity = 0.25
-                circle.layer.shadowRadius = 12
-                circle.layer.shadowOffset = CGSize(width: 0, height: 4)
+    private func animateCenterIconSelect() {
+        guard let icon = iconViewsByTab[.create] else { return }
+        isCenterIconAnimating = true
+        let r1 = centerIconRotation + .pi
+        let s0 = centerIconScale
+
+        UIView.animate(withDuration: centerIconSpinDuration, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
+            icon.transform = self.centerIconViewTransform(rotation: r1, scale: s0)
+        } completion: { [weak self] finished in
+            guard let self, finished else { return }
+            self.centerIconRotation = r1
+            UIView.animate(withDuration: self.centerIconScaleDuration, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
+                icon.transform = self.centerIconViewTransform(rotation: r1, scale: self.centerIconActiveScale)
+            } completion: { [weak self] done in
+                guard let self, done else { return }
+                self.centerIconScale = self.centerIconActiveScale
+                self.isCenterIconAnimating = false
             }
         }
+    }
 
-        if animated {
-            let duration: CFTimeInterval = 0.11
-            let animOpacity = CABasicAnimation(keyPath: "shadowOpacity")
-            animOpacity.duration = duration
-            animOpacity.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            animOpacity.fromValue = circle.layer.shadowOpacity
+    private func animateCenterIconDeselect() {
+        guard let icon = iconViewsByTab[.create] else { return }
+        isCenterIconAnimating = true
+        let r1 = centerIconRotation + .pi
+        let s0 = centerIconScale
 
-            let animRadius = CABasicAnimation(keyPath: "shadowRadius")
-            animRadius.duration = duration
-            animRadius.timingFunction = animOpacity.timingFunction
-            animRadius.fromValue = circle.layer.shadowRadius
-
-            let animOffset = CABasicAnimation(keyPath: "shadowOffset")
-            animOffset.duration = duration
-            animOffset.timingFunction = animOpacity.timingFunction
-            animOffset.fromValue = NSValue(cgSize: circle.layer.shadowOffset)
-
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            changes()
-            CATransaction.commit()
-
-            animOpacity.toValue = circle.layer.shadowOpacity
-            animRadius.toValue = circle.layer.shadowRadius
-            animOffset.toValue = NSValue(cgSize: circle.layer.shadowOffset)
-            circle.layer.add(animOpacity, forKey: "glowOpacity")
-            circle.layer.add(animRadius, forKey: "glowRadius")
-            circle.layer.add(animOffset, forKey: "glowOffset")
-        } else {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            changes()
-            CATransaction.commit()
+        UIView.animate(withDuration: centerIconSpinDuration, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
+            icon.transform = self.centerIconViewTransform(rotation: r1, scale: s0)
+        } completion: { [weak self] finished in
+            guard let self, finished else { return }
+            self.centerIconRotation = r1
+            UIView.animate(withDuration: self.centerIconScaleDuration, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
+                icon.transform = self.centerIconViewTransform(rotation: r1, scale: 1.0)
+            } completion: { [weak self] done in
+                guard let self, done else { return }
+                self.centerIconRotation = 0
+                self.centerIconScale = 1.0
+                CATransaction.begin()
+                CATransaction.setDisableActions(true)
+                icon.transform = .identity
+                CATransaction.commit()
+                self.isCenterIconAnimating = false
+            }
         }
     }
 
@@ -261,6 +245,10 @@ final class CustomTabBarView: UIView {
         let selectedColor = UIColor.systemYellow
         let unselectedColor = UIColor(white: 0.55, alpha: 1.0)
 
+        // Якщо ми йдемо з меню — відміняємо заплановану підсвітку.
+        pendingMenuHighlight?.cancel()
+        pendingMenuHighlight = nil
+
         for item in items {
             let t = item.tab
             let isSelected = t == tab
@@ -270,7 +258,8 @@ final class CustomTabBarView: UIView {
 
             if item.isCenter {
                 iconColor = .black
-                titleColor = isSelected ? selectedColor : unselectedColor
+                // Для меню робимо відкладену підсвітку (після того як індикатор сховається).
+                titleColor = isSelected ? unselectedColor : unselectedColor
             } else {
                 iconColor = isSelected ? selectedColor : unselectedColor
                 titleColor = isSelected ? selectedColor : unselectedColor
@@ -285,8 +274,71 @@ final class CustomTabBarView: UIView {
             return
         }
 
+        updateCenterIconForSelection(from: oldTab, to: tab, animated: animated)
+
+        // Якщо обрана середня вкладка — спочатку анімуємо індикатор у центр (в заглиблення),
+        // а вже після того ховаємо його (щоб виглядало як “перетворення” у текст).
+        if tab == .create {
+            // Показуємо індикатор (якщо був прихований), щоб було видно рух.
+            setIndicatorHidden(false, animated: animated)
+
+            // Ціль руху — центр вкладки create.
+            guard let centerRect = slotRects[.create] else { return }
+            let indicatorWidth = centerRect.width * indicatorRibbonWidthScale
+            let indicatorHeight = max(2, centerRect.height * indicatorThicknessScale)
+            let targetCenterX = centerRect.midX
+            let baseY = centerRect.midY
+
+            let fromX = indicatorCurrentCenterX ?? targetCenterX
+            let fromBaseY = indicatorCurrentBaseY ?? baseY
+
+            indicatorCurrentCenterX = targetCenterX
+            indicatorCurrentBaseY = baseY
+            indicatorCurrentWidth = indicatorWidth
+            indicatorCurrentHeight = indicatorHeight
+
+            // Кінцевий стан.
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            layoutIndicatorSegments(centerX: targetCenterX, baseY: baseY, width: indicatorWidth, height: indicatorHeight)
+            CATransaction.commit()
+
+            if animated {
+                animateIndicatorSegments(
+                    fromCenterX: fromX,
+                    fromBaseY: fromBaseY,
+                    toCenterX: targetCenterX,
+                    toBaseY: baseY,
+                    width: indicatorWidth,
+                    height: indicatorHeight,
+                    duration: indicatorMoveDuration
+                )
+
+                // Ховаємо після завершення руху вниз.
+                let work = DispatchWorkItem { [weak self] in
+                    guard let self else { return }
+                    self.setIndicatorHidden(true, animated: true)
+
+                    // Після fade-out індикатора підсвічуємо "Меню" жовтим, ніби індикатор його “фарбує”.
+                    let fadeDuration: TimeInterval = 0.12
+                    DispatchQueue.main.asyncAfter(deadline: .now() + fadeDuration) { [weak self] in
+                        self?.setMenuTitleHighlighted(true, animated: true)
+                    }
+                }
+                pendingMenuHighlight = work
+                DispatchQueue.main.asyncAfter(deadline: .now() + indicatorMoveDuration, execute: work)
+            } else {
+                setIndicatorHidden(true, animated: false)
+                setMenuTitleHighlighted(true, animated: false)
+            }
+            return
+        } else {
+            setIndicatorHidden(false, animated: animated)
+            setMenuTitleHighlighted(false, animated: animated)
+        }
+
         let indicatorWidth = targetRect.width * indicatorRibbonWidthScale
-        let indicatorHeight = targetRect.height
+        let indicatorHeight = max(2, targetRect.height * indicatorThicknessScale)
         let targetCenterX = targetRect.midX
         let baseY = targetRect.midY
 
@@ -317,6 +369,42 @@ final class CustomTabBarView: UIView {
 
         animateIndicatorSegments(fromCenterX: fromX, fromBaseY: fromBaseY, toCenterX: targetCenterX, toBaseY: baseY, width: indicatorWidth, height: indicatorHeight, duration: indicatorMoveDuration)
         animateShimmer(from: oldTab, to: tab)
+    }
+
+    private func setIndicatorHidden(_ hidden: Bool, animated: Bool) {
+        let targetOpacity: Float = hidden ? 0.0 : 1.0
+        if !animated {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            indicatorSegmentsContainer.opacity = targetOpacity
+            CATransaction.commit()
+            return
+        }
+
+        let anim = CABasicAnimation(keyPath: "opacity")
+        anim.duration = 0.12
+        anim.fromValue = indicatorSegmentsContainer.presentation()?.opacity ?? indicatorSegmentsContainer.opacity
+        anim.toValue = targetOpacity
+        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        indicatorSegmentsContainer.opacity = targetOpacity
+        CATransaction.commit()
+
+        indicatorSegmentsContainer.add(anim, forKey: "indicatorFade")
+    }
+
+    private func setMenuTitleHighlighted(_ highlighted: Bool, animated: Bool) {
+        guard let label = titleLabelsByTab[.create] else { return }
+        let target = highlighted ? UIColor.systemYellow : UIColor(white: 0.55, alpha: 1.0)
+        if !animated {
+            label.textColor = target
+            return
+        }
+        UIView.transition(with: label, duration: 0.12, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+            label.textColor = target
+        }
     }
 
     private func indicatorAngle(forCenterX x: CGFloat) -> CGFloat {
@@ -493,7 +581,7 @@ final class CustomTabBarView: UIView {
             let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(index) + 0.5)
 
             if item.isCenter {
-                let circleSize: CGFloat = 66
+                let circleSize: CGFloat = 60
                 let circleY = barTopY - 18 - contentLift
                 if let circle = centerCircleByTab[tab] {
                     circle.frame = CGRect(x: centerX - circleSize / 2, y: circleY, width: circleSize, height: circleSize)

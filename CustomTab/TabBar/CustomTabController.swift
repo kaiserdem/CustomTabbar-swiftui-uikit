@@ -44,8 +44,6 @@ final class CustomTabController: UIViewController, TabNavigator {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
-        containerView.backgroundColor = .black
         setupLayout()
         setupNavigationControllers()
         selectTab(currentTab, to: router.route(for: currentTab), animated: false)
@@ -87,7 +85,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         // `TabRouter` передаємо в SwiftUI як `@EnvironmentObject`.
         let root = RouteViewFactory.makeView(for: route, router: router)
         let vc = RouteHostingController(route: route, rootView: root)
-        vc.view.backgroundColor = .black
+        vc.view.backgroundColor = RouteViewFactory.uiScreenBackground(for: route)
         return vc
     }
 
@@ -107,6 +105,8 @@ final class CustomTabController: UIViewController, TabNavigator {
         // Міняємо контейнерний child-контролер.
         if currentNavController !== nav {
             switchToNavController(nav, animated: animated)
+        } else {
+            syncChromeBackground(with: nav)
         }
     }
 
@@ -134,6 +134,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         nav.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         containerView.addSubview(nav.view)
         nav.didMove(toParent: self)
+        syncChromeBackground(with: nav)
 
         if animated, let fromNav {
             // Невелика fade-анімація при перемиканні.
@@ -154,6 +155,36 @@ private final class RouteHostingController: UIHostingController<AnyView> {
     @objc required dynamic init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        applyScreenChrome()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        applyScreenChrome()
+    }
+
+    private func applyScreenChrome() {
+        let bg = RouteViewFactory.uiScreenBackground(for: route)
+        view.backgroundColor = bg
+        guard let nav = navigationController else { return }
+        nav.view.backgroundColor = bg
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = bg
+        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+
+        nav.navigationBar.standardAppearance = appearance
+        nav.navigationBar.scrollEdgeAppearance = appearance
+        nav.navigationBar.compactAppearance = appearance
+        nav.navigationBar.compactScrollEdgeAppearance = appearance
+        nav.navigationBar.tintColor = .white
+    }
 }
 
 extension CustomTabController: UINavigationControllerDelegate {
@@ -161,6 +192,16 @@ extension CustomTabController: UINavigationControllerDelegate {
         guard let tab = tabByNavController[navigationController] else { return }
         guard let hosting = viewController as? RouteHostingController else { return }
         router.setRoute(hosting.route, for: tab)
+        syncChromeBackground(with: navigationController)
+    }
+
+    /// Фон під статус-баром, контейнером і навігацією — як у верхнього екрана стеку.
+    private func syncChromeBackground(with nav: UINavigationController) {
+        guard let hosting = nav.topViewController as? RouteHostingController else { return }
+        let bg = RouteViewFactory.uiScreenBackground(for: hosting.route)
+        containerView.backgroundColor = bg
+        view.backgroundColor = bg
+        nav.view.backgroundColor = bg
     }
 }
 
