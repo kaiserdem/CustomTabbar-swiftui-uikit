@@ -205,7 +205,7 @@ final class CustomTabBarView: UIView {
         }
 
         if animated {
-            let duration: CFTimeInterval = 0.18
+            let duration: CFTimeInterval = 0.11
             let animOpacity = CABasicAnimation(keyPath: "shadowOpacity")
             animOpacity.duration = duration
             animOpacity.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
