@@ -20,7 +20,9 @@ final class CustomTabBarView: UIView {
     // Індикатор-стрічка як набір сегментів (щоб вигинатися по кривій).
     private let indicatorSegmentsContainer = CALayer()
     private var indicatorSegments: [CALayer] = []
-    private let indicatorSegmentsCount = 10
+    private let indicatorSegmentsCount = 16
+    private let indicatorRibbonWidthScale: CGFloat = 0.82
+    private let indicatorSegmentFillFactor: CGFloat = 1.08
     private var indicatorCurrentCenterX: CGFloat?
     private var indicatorCurrentBaseY: CGFloat?
     private var indicatorCurrentWidth: CGFloat?
@@ -155,7 +157,7 @@ final class CustomTabBarView: UIView {
             return
         }
 
-        let indicatorWidth = targetRect.width
+        let indicatorWidth = targetRect.width * indicatorRibbonWidthScale
         let indicatorHeight = targetRect.height
         let targetCenterX = targetRect.midX
         let baseY = targetRect.midY
@@ -338,6 +340,8 @@ final class CustomTabBarView: UIView {
         let indicatorHeight: CGFloat = 4
 
         // Позиціонуємо кнопки, іконки, лейбли, а також слоти для індикатора.
+        let iconsDrop: CGFloat = 6
+        let labelsLift: CGFloat = 6
         for (index, item) in items.enumerated() {
             let tab = item.tab
             let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(index) + 0.5)
@@ -359,7 +363,7 @@ final class CustomTabBarView: UIView {
                 let labelH: CGFloat = 22
                 titleLabelsByTab[tab]?.frame = CGRect(
                     x: centerX - slotWidth / 2,
-                    y: barBottomY - labelH - 2 - contentLift - 10,
+                    y: barBottomY - labelH - 2 - contentLift - 10 - labelsLift,
                     width: slotWidth,
                     height: labelH
                 )
@@ -369,7 +373,7 @@ final class CustomTabBarView: UIView {
                 slotRects[tab] = CGRect(x: centerX - indicatorWidth / 2, y: indicatorY, width: indicatorWidth, height: indicatorHeight)
             } else {
                 let iconSize: CGFloat = 26
-                let iconY = barTopY + 22 - contentLift
+                let iconY = barTopY + 22 - contentLift + iconsDrop
                 iconViewsByTab[tab]?.frame = CGRect(x: centerX - iconSize / 2, y: iconY, width: iconSize, height: iconSize)
 
                 // Tap area.
@@ -381,7 +385,7 @@ final class CustomTabBarView: UIView {
                 let labelH: CGFloat = 22
                 titleLabelsByTab[tab]?.frame = CGRect(
                     x: centerX - slotWidth / 2,
-                    y: barBottomY - labelH - 2 - contentLift - 10,
+                    y: barBottomY - labelH - 2 - contentLift - 10 - labelsLift,
                     width: slotWidth,
                     height: labelH
                 )
@@ -412,7 +416,7 @@ final class CustomTabBarView: UIView {
 
         let n = indicatorSegmentsCount
         let spacing = (n > 1) ? (width / CGFloat(n - 1)) : 0
-        let segLength = max(6, width / CGFloat(n) * 0.85)
+        let segLength = max(6, width / CGFloat(n) * indicatorSegmentFillFactor)
         let segHeight = height
         let radius = segHeight / 2
 
