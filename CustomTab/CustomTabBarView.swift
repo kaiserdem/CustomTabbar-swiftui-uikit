@@ -15,6 +15,7 @@ final class CustomTabBarView: UIView {
     private var slotRects: [TabIdentifier: CGRect] = [:] // для індикатора (лінія)
 
     private let backgroundView = UIView()
+    private let backgroundShapeLayer = CAShapeLayer()
 
     private let indicatorLineView = UIView()
     private let indicatorGradient = CAGradientLayer()
@@ -43,10 +44,12 @@ final class CustomTabBarView: UIView {
     private func setupUI() {
         clipsToBounds = false
 
-        backgroundView.backgroundColor = UIColor(white: 0.12, alpha: 1.0)
-        // Потрібно прибрати скруглення, щоб бар був прямокутним на всю ширину.
-        backgroundView.layer.cornerRadius = 0
-        backgroundView.layer.masksToBounds = false
+        // Малюємо фон через shape layer (не mask), щоб “виямка” була темною,
+        // а не прозорою (і не показувала білий контент позаду).
+        backgroundView.backgroundColor = .clear
+        backgroundShapeLayer.fillColor = UIColor(white: 0.12, alpha: 1.0).cgColor
+        backgroundShapeLayer.strokeColor = nil
+        backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
         addSubview(backgroundView)
 
         indicatorLineView.backgroundColor = .clear
@@ -103,6 +106,19 @@ final class CustomTabBarView: UIView {
     @objc private func didTap(_ sender: UIButton) {
         guard let tab = TabIdentifier(rawValue: sender.tag) else { return }
         onSelect?(tab)
+    }
+
+    // Щоб середня кнопка (яка вище за bounds) все одно ловила дотики,
+    // як в підході з custom UITabBar.
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard !isHidden, alpha > 0.01 else { return nil }
+        for member in subviews.reversed() {
+            let subPoint = member.convert(point, from: self)
+            if let result = member.hitTest(subPoint, with: event) {
+                return result
+            }
+        }
+        return super.hitTest(point, with: event)
     }
 
     func setSelectedTab(_ tab: TabIdentifier, animated: Bool) {
@@ -187,14 +203,51 @@ final class CustomTabBarView: UIView {
             height: bounds.height - outerInsetTop - outerInsetBottom
         )
 
-        indicatorGradient.frame = indicatorLineView.bounds
-
         let contentWidth = backgroundView.frame.width
         let slotCount = items.count // 5
         let slotWidth = contentWidth / CGFloat(slotCount)
 
         let barTopY = backgroundView.frame.minY
         let barBottomY = backgroundView.frame.maxY
+
+        indicatorGradient.frame = indicatorLineView.bounds
+
+        // “Яма” під середньою кнопкою: малюємо ввігнуту форму верхнього краю TabBar.
+        let centerIndex = items.firstIndex(where: { $0.isCenter }) ?? 0
+        let circleSize: CGFloat = 56
+        let circleY = barTopY - 18 - contentLift
+        let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(centerIndex) + 0.5)
+        let localCenterX = centerX - backgroundView.frame.minX
+        _ = circleY // використовується для вирівнювання кнопки відносно trough
+
+        let notchWidth = min(backgroundView.bounds.width, slotWidth * 1.65)
+        let notchDepth = min(34, max(20, 42 - contentLift))
+        let xLeft = max(0, localCenterX - notchWidth / 2)
+        let xRight = min(backgroundView.bounds.width, localCenterX + notchWidth / 2)
+        let yTop: CGFloat = 10 // регулює, наскільки “опущена” виямка
+        let yBottom: CGFloat = yTop + notchDepth
+
+        let w = backgroundView.bounds.width
+        let h = backgroundView.bounds.height
+        let bgPath = UIBezierPath()
+        bgPath.move(to: CGPoint(x: 0, y: 0))
+        bgPath.addLine(to: CGPoint(x: xLeft, y: 0))
+        bgPath.addCurve(
+            to: CGPoint(x: localCenterX, y: yBottom),
+            controlPoint1: CGPoint(x: xLeft + notchWidth * 0.25, y: 0),
+            controlPoint2: CGPoint(x: localCenterX - notchWidth * 0.25, y: yBottom)
+        )
+        bgPath.addCurve(
+            to: CGPoint(x: xRight, y: 0),
+            controlPoint1: CGPoint(x: localCenterX + notchWidth * 0.25, y: yBottom),
+            controlPoint2: CGPoint(x: xRight - notchWidth * 0.25, y: 0)
+        )
+        bgPath.addLine(to: CGPoint(x: w, y: 0))
+        bgPath.addLine(to: CGPoint(x: w, y: h))
+        bgPath.addLine(to: CGPoint(x: 0, y: h))
+        bgPath.close()
+        backgroundShapeLayer.path = bgPath.cgPath
+        backgroundShapeLayer.frame = backgroundView.bounds
 
         // Лінія підсвітки зверху (як на фото).
         let indicatorY = barTopY + 14 - contentLift
