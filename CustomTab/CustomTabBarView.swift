@@ -35,6 +35,8 @@ final class CustomTabBarView: UIView {
     private var titleLabelsByTab: [TabIdentifier: UILabel] = [:]
     private var centerCircleByTab: [TabIdentifier: UIView] = [:]
 
+    private var centerToggled: Bool = false
+
     // Геометрія заглиблення для анімації індикатора.
     private var notchXLeft: CGFloat = 0
     private var notchXRight: CGFloat = 0
@@ -63,6 +65,7 @@ final class CustomTabBarView: UIView {
         // Малюємо фон через shape layer (не mask), щоб “виямка” була темною,
         // а не прозорою (і не показувала білий контент позаду).
         backgroundView.backgroundColor = .clear
+        backgroundView.isUserInteractionEnabled = false
         backgroundShapeLayer.fillColor = UIColor(white: 0.12, alpha: 1.0).cgColor
         backgroundShapeLayer.strokeColor = nil
         backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
@@ -111,6 +114,7 @@ final class CustomTabBarView: UIView {
                 circle.layer.shadowOpacity = 0.25
                 circle.layer.shadowRadius = 12
                 circle.layer.shadowOffset = CGSize(width: 0, height: 4)
+                circle.isUserInteractionEnabled = false
                 addSubview(circle)
                 centerCircleByTab[item.tab] = circle
             }
@@ -119,7 +123,42 @@ final class CustomTabBarView: UIView {
 
     @objc private func didTap(_ sender: UIButton) {
         guard let tab = TabIdentifier(rawValue: sender.tag) else { return }
+        if tab == .create {
+            toggleCenterButton(animated: true)
+        }
         onSelect?(tab)
+    }
+
+    private func toggleCenterButton(animated: Bool) {
+        centerToggled.toggle()
+
+        guard let circle = centerCircleByTab[.create],
+              let iconView = iconViewsByTab[.create] else { return }
+
+        let nextSymbol = centerToggled ? "xmark" : "list.bullet"
+        let rotation = centerToggled ? (CGFloat.pi * 2) : -(CGFloat.pi * 2)
+
+        let updateIcon = {
+            iconView.image = UIImage(systemName: nextSymbol)
+        }
+
+        guard animated else {
+            updateIcon()
+            return
+        }
+
+        UIView.animate(withDuration: 0.26, delay: 0, options: [.curveEaseInOut]) {
+            circle.transform = circle.transform.rotated(by: rotation)
+            iconView.transform = iconView.transform.rotated(by: rotation)
+        } completion: { _ in
+            // Скидаємо transform, щоб не накопичувався.
+            circle.transform = .identity
+            iconView.transform = .identity
+        }
+
+        UIView.transition(with: iconView, duration: 0.12, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+            updateIcon()
+        }
     }
 
     // Щоб середня кнопка (яка вище за bounds) все одно ловила дотики,
@@ -382,8 +421,14 @@ final class CustomTabBarView: UIView {
                     circle.layer.cornerRadius = circleSize / 2
                 }
 
-                let iconSize: CGFloat = 26
-                iconViewsByTab[tab]?.frame = CGRect(x: centerX - iconSize / 2, y: circleY + circleSize / 2 - iconSize / 2, width: iconSize, height: iconSize)
+                // Центральна іконка трохи менша, щоб "список" виглядав акуратно.
+                let iconSize: CGFloat = 22
+                iconViewsByTab[tab]?.frame = CGRect(
+                    x: centerX - iconSize / 2,
+                    y: circleY + circleSize / 2 - iconSize / 2,
+                    width: iconSize,
+                    height: iconSize
+                )
 
                 // Tap area включає іконку + підпис.
                 let tapH: CGFloat = (barBottomY - barTopY) + 10

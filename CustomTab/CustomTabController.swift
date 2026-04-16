@@ -20,7 +20,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         let items: [CustomTabBarView.Item] = [
             .init(tab: .home, systemImage: "house", isCenter: false, title: "Головна"),
             .init(tab: .browse, systemImage: "play", isCenter: false, title: "Лобі"),
-            .init(tab: .create, systemImage: "line.3.horizontal", isCenter: true, title: "Меню"),
+            .init(tab: .create, systemImage: "list.bullet", isCenter: true, title: "Меню"),
             .init(tab: .notifications, systemImage: "gift", isCenter: false, title: "Бонуси"),
             .init(tab: .profile, systemImage: "person", isCenter: false, title: "Панель")
         ]
