@@ -214,8 +214,8 @@ final class CustomTabBarView: UIView {
 
         // “Яма” під середньою кнопкою: малюємо ввігнуту форму верхнього краю TabBar.
         let centerIndex = items.firstIndex(where: { $0.isCenter }) ?? 0
-        let circleSize: CGFloat = 56
-        let circleY = barTopY - 18 - contentLift
+        let circleSize: CGFloat = 60
+        let circleY = barTopY - 40 - contentLift
         let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(centerIndex) + 0.5)
         let localCenterX = centerX - backgroundView.frame.minX
         _ = circleY // використовується для вирівнювання кнопки відносно trough
@@ -224,7 +224,7 @@ final class CustomTabBarView: UIView {
         let notchDepth = min(34, max(20, 42 - contentLift))
         let xLeft = max(0, localCenterX - notchWidth / 2)
         let xRight = min(backgroundView.bounds.width, localCenterX + notchWidth / 2)
-        let yTop: CGFloat = 10 // регулює, наскільки “опущена” виямка
+        let yTop: CGFloat = 13 // регулює, наскільки “опущена” виямка
         let yBottom: CGFloat = yTop + notchDepth
 
         let w = backgroundView.bounds.width
