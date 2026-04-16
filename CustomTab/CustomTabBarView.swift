@@ -20,9 +20,9 @@ final class CustomTabBarView: UIView {
     // Індикатор-стрічка як набір сегментів (щоб вигинатися по кривій).
     private let indicatorSegmentsContainer = CALayer()
     private var indicatorSegments: [CALayer] = []
-    private let indicatorSegmentsCount = 16
-    private let indicatorRibbonWidthScale: CGFloat = 0.82
-    private let indicatorSegmentFillFactor: CGFloat = 1.08
+    private let indicatorSegmentsCount = 20
+    private let indicatorRibbonWidthScale: CGFloat = 0.72
+    private let indicatorSegmentFillFactor: CGFloat = 1.16
     private var indicatorCurrentCenterX: CGFloat?
     private var indicatorCurrentBaseY: CGFloat?
     private var indicatorCurrentWidth: CGFloat?
@@ -89,7 +89,7 @@ final class CustomTabBarView: UIView {
             let label = UILabel()
             label.text = item.title
             label.textAlignment = .center
-            label.font = .systemFont(ofSize: 16, weight: .semibold)
+            label.font = .systemFont(ofSize: 14, weight: .semibold)
             addSubview(label)
             titleLabelsByTab[item.tab] = label
 
