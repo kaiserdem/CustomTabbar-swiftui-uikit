@@ -22,8 +22,8 @@ final class CustomTabBarView: UIView {
     private let indicatorSegmentsContainer = CALayer()
     private var indicatorSegments: [CALayer] = []
     private let indicatorSegmentsCount = 20
-    private let indicatorRibbonWidthScale: CGFloat = 0.62
-    private let indicatorThicknessScale: CGFloat = 0.75
+    private let indicatorRibbonWidthScale: CGFloat = 0.50
+    private let indicatorThicknessScale: CGFloat = 0.58
     private let indicatorSegmentFillFactor: CGFloat = 1.16
     private let indicatorMoveDuration: CFTimeInterval = 0.22
     private var indicatorCurrentCenterX: CGFloat?
@@ -288,7 +288,7 @@ final class CustomTabBarView: UIView {
             // Ціль руху — центр вкладки create.
             guard let centerRect = slotRects[.create] else { return }
             let indicatorWidth = centerRect.width * indicatorRibbonWidthScale
-            let indicatorHeight = max(2, centerRect.height * indicatorThicknessScale)
+            let indicatorHeight = max(1.5, centerRect.height * indicatorThicknessScale)
             let targetCenterX = centerRect.midX
             let baseY = centerRect.midY
 
@@ -341,7 +341,7 @@ final class CustomTabBarView: UIView {
         }
 
         let indicatorWidth = targetRect.width * indicatorRibbonWidthScale
-        let indicatorHeight = max(2, targetRect.height * indicatorThicknessScale)
+        let indicatorHeight = max(1.5, targetRect.height * indicatorThicknessScale)
         let targetCenterX = targetRect.midX
         let baseY = targetRect.midY
 
@@ -571,7 +571,7 @@ final class CustomTabBarView: UIView {
 
         // Лінія підсвітки зверху (як на фото).
         let indicatorY = barTopY + 14 - contentLift
-        let indicatorHeight: CGFloat = 4
+        let indicatorHeight: CGFloat = 3.5
 
         // Позиціонуємо кнопки, іконки, лейбли, а також слоти для індикатора.
         let iconsDrop: CGFloat = 8
@@ -613,11 +613,13 @@ final class CustomTabBarView: UIView {
                 )
 
                 // Індикація для center — все одно існує, але зазвичай на фото вибрана не вона.
-                let indicatorWidth: CGFloat = 44
+                let indicatorWidth: CGFloat = 38
                 slotRects[tab] = CGRect(x: centerX - indicatorWidth / 2, y: indicatorY, width: indicatorWidth, height: indicatorHeight)
             } else {
-                let iconSize: CGFloat = 26
-                let iconY = barTopY + 22 - contentLift + iconsDrop
+                let iconSize: CGFloat = (tab == .home || tab == .notifications) ? 30 : 26
+                let iconBaseY = barTopY + 22 - contentLift + iconsDrop
+                // Більші іконки трохи піднімаємо, щоб центр лишався ближче до решти вкладок.
+                let iconY = iconBaseY - (iconSize - 26) / 2
                 iconViewsByTab[tab]?.frame = CGRect(x: centerX - iconSize / 2, y: iconY, width: iconSize, height: iconSize)
 
                 // Tap area.
@@ -634,7 +636,7 @@ final class CustomTabBarView: UIView {
                     height: labelH
                 )
 
-                let indicatorWidth: CGFloat = 48
+                let indicatorWidth: CGFloat = 42
                 slotRects[tab] = CGRect(x: centerX - indicatorWidth / 2, y: indicatorY, width: indicatorWidth, height: indicatorHeight)
             }
         }
