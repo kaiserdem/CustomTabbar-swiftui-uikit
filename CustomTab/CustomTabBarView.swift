@@ -17,8 +17,14 @@ final class CustomTabBarView: UIView {
     private let backgroundView = UIView()
     private let backgroundShapeLayer = CAShapeLayer()
 
-    private let indicatorLineView = UIView()
-    private let indicatorGradient = CAGradientLayer()
+    // Індикатор-стрічка як набір сегментів (щоб вигинатися по кривій).
+    private let indicatorSegmentsContainer = CALayer()
+    private var indicatorSegments: [CALayer] = []
+    private let indicatorSegmentsCount = 10
+    private var indicatorCurrentCenterX: CGFloat?
+    private var indicatorCurrentBaseY: CGFloat?
+    private var indicatorCurrentWidth: CGFloat?
+    private var indicatorCurrentHeight: CGFloat?
 
     private var tapButtonsByTab: [TabIdentifier: UIButton] = [:]
     private var iconViewsByTab: [TabIdentifier: UIImageView] = [:]
@@ -58,19 +64,9 @@ final class CustomTabBarView: UIView {
         backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
         addSubview(backgroundView)
 
-        indicatorLineView.backgroundColor = .clear
-        indicatorLineView.isUserInteractionEnabled = false
-        indicatorLineView.layer.cornerRadius = 2
-        addSubview(indicatorLineView)
-
-        indicatorGradient.colors = [
-            UIColor.systemYellow.withAlphaComponent(0.2).cgColor,
-            UIColor.systemYellow.withAlphaComponent(1.0).cgColor,
-            UIColor.systemYellow.withAlphaComponent(0.2).cgColor
-        ]
-        indicatorGradient.startPoint = CGPoint(x: 0.0, y: 0.5)
-        indicatorGradient.endPoint = CGPoint(x: 1.0, y: 0.5)
-        indicatorLineView.layer.addSublayer(indicatorGradient)
+        indicatorSegmentsContainer.masksToBounds = false
+        layer.addSublayer(indicatorSegmentsContainer)
+        ensureIndicatorSegments()
 
         for item in items {
             // Tap area
@@ -161,47 +157,61 @@ final class CustomTabBarView: UIView {
 
         let indicatorWidth = targetRect.width
         let indicatorHeight = targetRect.height
-
         let targetCenterX = targetRect.midX
-        let targetCenterY = targetRect.midY + indicatorYOffset(forCenterX: targetCenterX)
+        let baseY = targetRect.midY
 
-        if !animated || indicatorLineView.bounds == .zero {
-            indicatorLineView.bounds = CGRect(x: 0, y: 0, width: indicatorWidth, height: indicatorHeight)
-            indicatorLineView.center = CGPoint(x: targetCenterX, y: targetCenterY)
-            indicatorGradient.frame = indicatorLineView.bounds
+        if indicatorCurrentCenterX == nil || indicatorCurrentBaseY == nil || !animated {
+            indicatorCurrentCenterX = targetCenterX
+            indicatorCurrentBaseY = baseY
+            indicatorCurrentWidth = indicatorWidth
+            indicatorCurrentHeight = indicatorHeight
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            layoutIndicatorSegments(centerX: targetCenterX, baseY: baseY, width: indicatorWidth, height: indicatorHeight)
+            CATransaction.commit()
             return
         }
 
-        // Гладка анімація вздовж заглиблення: keyframe по позиції.
-        let from = indicatorLineView.layer.position
-        let to = CGPoint(x: targetCenterX, y: targetCenterY)
+        let fromX = indicatorCurrentCenterX ?? targetCenterX
+        let fromBaseY = indicatorCurrentBaseY ?? baseY
+        indicatorCurrentCenterX = targetCenterX
+        indicatorCurrentBaseY = baseY
+        indicatorCurrentWidth = indicatorWidth
+        indicatorCurrentHeight = indicatorHeight
 
-        // Оновлюємо final state без implicit-анімацій.
+        // Оновлюємо кінцевий стан без implicit-анімацій.
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        indicatorLineView.bounds = CGRect(x: 0, y: 0, width: indicatorWidth, height: indicatorHeight)
-        indicatorLineView.layer.position = to
-        indicatorGradient.frame = indicatorLineView.bounds
+        layoutIndicatorSegments(centerX: targetCenterX, baseY: baseY, width: indicatorWidth, height: indicatorHeight)
         CATransaction.commit()
 
-        let steps = 24
-        var values: [NSValue] = []
-        values.reserveCapacity(steps + 1)
-        for i in 0...steps {
-            let t = CGFloat(i) / CGFloat(steps)
-            let x = from.x + (to.x - from.x) * t
-            let yBase = from.y + (to.y - from.y) * t
-            let y = yBase + indicatorYOffset(forCenterX: x)
-            values.append(NSValue(cgPoint: CGPoint(x: x, y: y)))
+        animateIndicatorSegments(fromCenterX: fromX, fromBaseY: fromBaseY, toCenterX: targetCenterX, toBaseY: baseY, width: indicatorWidth, height: indicatorHeight, duration: 2.25)
+        animateShimmer(from: oldTab, to: tab)
+    }
+
+    private func indicatorAngle(forCenterX x: CGFloat) -> CGFloat {
+        // Кут дотичної до кривої заглиблення в точці x.
+        // Поза заглибленням — 0 (горизонтально).
+        guard notchSamples.count >= 2 else { return 0 }
+        if x <= notchSamples[0].x || x >= notchSamples[notchSamples.count - 1].x { return 0 }
+
+        // Знаходимо сусідні точки для оцінки похідної.
+        var lo = 0
+        var hi = notchSamples.count - 1
+        while hi - lo > 1 {
+            let mid = (lo + hi) / 2
+            if notchSamples[mid].x < x { lo = mid } else { hi = mid }
         }
 
-        let anim = CAKeyframeAnimation(keyPath: "position")
-        anim.values = values
-        anim.duration = 2.25
-        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        indicatorLineView.layer.add(anim, forKey: "moveAlongNotch")
-
-        animateShimmer(from: oldTab, to: tab)
+        let i0 = max(0, lo - 1)
+        let i1 = min(notchSamples.count - 1, hi + 1)
+        let p0 = notchSamples[i0]
+        let p1 = notchSamples[i1]
+        let dx = p1.x - p0.x
+        if abs(dx) < 0.0001 { return 0 }
+        let dy = p1.y - p0.y
+        // y у notchSamples — це localYOffset, тож кут коректний.
+        return atan2(dy, dx)
     }
 
     private func indicatorYOffset(forCenterX x: CGFloat) -> CGFloat {
@@ -227,15 +237,16 @@ final class CustomTabBarView: UIView {
     }
 
     private func animateShimmer(from oldTab: TabIdentifier?, to newTab: TabIdentifier) {
-        indicatorGradient.removeAllAnimations()
+        // Для сегментів shimmer робимо як легку пульсацію яскравості.
+        indicatorSegmentsContainer.removeAllAnimations()
 
         // “Перелив” — швидкий зсув градієнта в межах лінії.
-        let anim = CABasicAnimation(keyPath: "locations")
-        anim.duration = 0.28
-        anim.fromValue = [0.0, 0.45, 1.0]
-        anim.toValue = [0.2, 0.65, 1.15]
-        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        indicatorGradient.add(anim, forKey: "shimmer")
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.duration = 0.28
+        pulse.fromValue = 0.75
+        pulse.toValue = 1.0
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        indicatorSegmentsContainer.add(pulse, forKey: "shimmerPulse")
     }
 
     override func layoutSubviews() {
@@ -267,7 +278,7 @@ final class CustomTabBarView: UIView {
         let barTopY = backgroundView.frame.minY
         let barBottomY = backgroundView.frame.maxY
 
-        indicatorGradient.frame = indicatorLineView.bounds
+        indicatorSegmentsContainer.frame = bounds
 
         // “Яма” під середньою кнопкою: малюємо ввігнуту форму верхнього краю TabBar.
         let centerIndex = items.firstIndex(where: { $0.isCenter }) ?? 0
@@ -380,16 +391,90 @@ final class CustomTabBarView: UIView {
             }
         }
 
-        indicatorLineView.layer.cornerRadius = indicatorHeight / 2
-        indicatorGradient.frame = indicatorLineView.bounds
-
         // Підтягнемо індикатор у поточний стан після layout.
         if let tab = selectedTab {
-            if indicatorLineView.frame == .zero {
-                setSelectedTab(tab, animated: false)
-            } else {
-                setSelectedTab(tab, animated: false)
+            setSelectedTab(tab, animated: false)
+        }
+    }
+
+    private func ensureIndicatorSegments() {
+        if !indicatorSegments.isEmpty { return }
+        for _ in 0..<indicatorSegmentsCount {
+            let seg = CALayer()
+            seg.backgroundColor = UIColor.systemYellow.cgColor
+            indicatorSegmentsContainer.addSublayer(seg)
+            indicatorSegments.append(seg)
+        }
+    }
+
+    private func layoutIndicatorSegments(centerX: CGFloat, baseY: CGFloat, width: CGFloat, height: CGFloat) {
+        ensureIndicatorSegments()
+
+        let n = indicatorSegmentsCount
+        let spacing = (n > 1) ? (width / CGFloat(n - 1)) : 0
+        let segLength = max(6, width / CGFloat(n) * 0.85)
+        let segHeight = height
+        let radius = segHeight / 2
+
+        for i in 0..<n {
+            let rel = CGFloat(i) - CGFloat(n - 1) / 2
+            let x = centerX + rel * spacing
+            let y = baseY + indicatorYOffset(forCenterX: x)
+            let angle = indicatorAngle(forCenterX: x)
+
+            let seg = indicatorSegments[i]
+            seg.bounds = CGRect(x: 0, y: 0, width: segLength, height: segHeight)
+            seg.cornerRadius = radius
+            seg.position = CGPoint(x: x, y: y)
+            seg.setAffineTransform(CGAffineTransform(rotationAngle: angle))
+        }
+    }
+
+    private func animateIndicatorSegments(
+        fromCenterX: CGFloat,
+        fromBaseY: CGFloat,
+        toCenterX: CGFloat,
+        toBaseY: CGFloat,
+        width: CGFloat,
+        height: CGFloat,
+        duration: CFTimeInterval
+    ) {
+        let n = indicatorSegmentsCount
+        let spacing = (n > 1) ? (width / CGFloat(n - 1)) : 0
+
+        let steps = 36
+        for i in 0..<n {
+            let rel = CGFloat(i) - CGFloat(n - 1) / 2
+
+            var posValues: [NSValue] = []
+            var rotValues: [NSNumber] = []
+            posValues.reserveCapacity(steps + 1)
+            rotValues.reserveCapacity(steps + 1)
+
+            for s in 0...steps {
+                let t = CGFloat(s) / CGFloat(steps)
+                let cx = fromCenterX + (toCenterX - fromCenterX) * t
+                let by = fromBaseY + (toBaseY - fromBaseY) * t
+                let x = cx + rel * spacing
+                let y = by + indicatorYOffset(forCenterX: x)
+                let a = indicatorAngle(forCenterX: x)
+                posValues.append(NSValue(cgPoint: CGPoint(x: x, y: y)))
+                rotValues.append(NSNumber(value: Double(a)))
             }
+
+            let pos = CAKeyframeAnimation(keyPath: "position")
+            pos.values = posValues
+            pos.duration = duration
+            pos.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+
+            let rot = CAKeyframeAnimation(keyPath: "transform.rotation.z")
+            rot.values = rotValues
+            rot.duration = duration
+            rot.timingFunction = pos.timingFunction
+
+            let seg = indicatorSegments[i]
+            seg.add(pos, forKey: "segPos")
+            seg.add(rot, forKey: "segRot")
         }
     }
 
