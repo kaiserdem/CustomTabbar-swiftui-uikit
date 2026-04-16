@@ -44,7 +44,8 @@ final class CustomTabController: UIViewController, TabNavigator {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .black
+        containerView.backgroundColor = .black
         setupLayout()
         setupNavigationControllers()
         selectTab(currentTab, to: router.route(for: currentTab), animated: false)
@@ -86,7 +87,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         // `TabRouter` передаємо в SwiftUI як `@EnvironmentObject`.
         let root = RouteViewFactory.makeView(for: route, router: router)
         let vc = RouteHostingController(route: route, rootView: root)
-        vc.view.backgroundColor = .systemBackground
+        vc.view.backgroundColor = .black
         return vc
     }
 

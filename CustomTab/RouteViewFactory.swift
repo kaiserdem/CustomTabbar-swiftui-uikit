@@ -2,30 +2,37 @@ import SwiftUI
 
 enum RouteViewFactory {
     static func makeView(for route: AppRoute, router: TabRouter) -> AnyView {
+        let view: AnyView
         switch route {
         case .homeRoot:
-            return AnyView(HomeRootView().environmentObject(router))
+            view = AnyView(HomeRootView().environmentObject(router))
         case .homeDetails:
-            return AnyView(HomeDetailsView().environmentObject(router))
+            view = AnyView(HomeDetailsView().environmentObject(router))
 
         case .browseRoot:
-            return AnyView(BrowseRootView().environmentObject(router))
+            view = AnyView(BrowseRootView().environmentObject(router))
         case .browseDetails:
-            return AnyView(BrowseDetailsView().environmentObject(router))
+            view = AnyView(BrowseDetailsView().environmentObject(router))
 
         case .createRoot:
-            return AnyView(CreateRootView().environmentObject(router))
+            view = AnyView(CreateRootView().environmentObject(router))
 
         case .notificationsRoot:
-            return AnyView(NotificationsRootView().environmentObject(router))
+            view = AnyView(NotificationsRootView().environmentObject(router))
         case .notificationsDetails:
-            return AnyView(NotificationsDetailsView().environmentObject(router))
+            view = AnyView(NotificationsDetailsView().environmentObject(router))
 
         case .profileRoot:
-            return AnyView(ProfileRootView().environmentObject(router))
+            view = AnyView(ProfileRootView().environmentObject(router))
         case .profileSettings:
-            return AnyView(ProfileSettingsView().environmentObject(router))
+            view = AnyView(ProfileSettingsView().environmentObject(router))
         }
+
+        return AnyView(
+            view
+                .background(Color.black.ignoresSafeArea())
+                .environment(\.colorScheme, .dark)
+        )
     }
 }
 
