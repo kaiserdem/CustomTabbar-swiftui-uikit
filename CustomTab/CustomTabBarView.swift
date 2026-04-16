@@ -16,6 +16,7 @@ final class CustomTabBarView: UIView {
 
     private let backgroundView = UIView()
     private let backgroundShapeLayer = CAShapeLayer()
+    private let backgroundTopStrokeLayer = CAShapeLayer()
 
     // Індикатор-стрічка як набір сегментів (щоб вигинатися по кривій).
     private let indicatorSegmentsContainer = CALayer()
@@ -65,6 +66,14 @@ final class CustomTabBarView: UIView {
         backgroundShapeLayer.fillColor = UIColor(white: 0.12, alpha: 1.0).cgColor
         backgroundShapeLayer.strokeColor = nil
         backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
+
+        // Ледь помітна лінія по верхньому контуру (щоб бар не зливався з чорним фоном).
+        backgroundTopStrokeLayer.fillColor = UIColor.clear.cgColor
+        backgroundTopStrokeLayer.strokeColor = UIColor.white.withAlphaComponent(0.10).cgColor
+        backgroundTopStrokeLayer.lineWidth = 1
+        backgroundTopStrokeLayer.lineCap = .round
+        backgroundTopStrokeLayer.lineJoin = .round
+        backgroundView.layer.addSublayer(backgroundTopStrokeLayer)
         addSubview(backgroundView)
 
         indicatorSegmentsContainer.masksToBounds = false
@@ -320,6 +329,24 @@ final class CustomTabBarView: UIView {
         backgroundShapeLayer.path = bgPath.cgPath
         backgroundShapeLayer.frame = backgroundView.bounds
 
+        // Верхній stroke повторює ту ж криву (лише верхній контур).
+        let topPath = UIBezierPath()
+        topPath.move(to: CGPoint(x: 0, y: 0))
+        topPath.addLine(to: CGPoint(x: xLeft, y: 0))
+        topPath.addCurve(
+            to: CGPoint(x: localCenterX, y: yBottom),
+            controlPoint1: CGPoint(x: xLeft + notchWidth * 0.25, y: 0),
+            controlPoint2: CGPoint(x: localCenterX - notchWidth * 0.25, y: yBottom)
+        )
+        topPath.addCurve(
+            to: CGPoint(x: xRight, y: 0),
+            controlPoint1: CGPoint(x: localCenterX + notchWidth * 0.25, y: yBottom),
+            controlPoint2: CGPoint(x: xRight - notchWidth * 0.25, y: 0)
+        )
+        topPath.addLine(to: CGPoint(x: w, y: 0))
+        backgroundTopStrokeLayer.path = topPath.cgPath
+        backgroundTopStrokeLayer.frame = backgroundView.bounds
+
         // Зберігаємо геометрію заглиблення в координатах Self (для індикатора).
         self.notchXLeft = backgroundView.frame.minX + xLeft
         self.notchXRight = backgroundView.frame.minX + xRight
@@ -350,7 +377,10 @@ final class CustomTabBarView: UIView {
             if item.isCenter {
                 let circleSize: CGFloat = 66
                 let circleY = barTopY - 18 - contentLift
-                centerCircleByTab[tab]?.frame = CGRect(x: centerX - circleSize / 2, y: circleY, width: circleSize, height: circleSize)
+                if let circle = centerCircleByTab[tab] {
+                    circle.frame = CGRect(x: centerX - circleSize / 2, y: circleY, width: circleSize, height: circleSize)
+                    circle.layer.cornerRadius = circleSize / 2
+                }
 
                 let iconSize: CGFloat = 26
                 iconViewsByTab[tab]?.frame = CGRect(x: centerX - iconSize / 2, y: circleY + circleSize / 2 - iconSize / 2, width: iconSize, height: iconSize)
