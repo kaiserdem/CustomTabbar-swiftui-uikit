@@ -36,6 +36,7 @@ final class CustomTabBarView: UIView {
     private var centerCircleByTab: [TabIdentifier: UIView] = [:]
 
     private var centerToggled: Bool = false
+    private var centerAnimating: Bool = false
 
     // Геометрія заглиблення для анімації індикатора.
     private var notchXLeft: CGFloat = 0
@@ -117,6 +118,18 @@ final class CustomTabBarView: UIView {
                 circle.isUserInteractionEnabled = false
                 addSubview(circle)
                 centerCircleByTab[item.tab] = circle
+
+                // Важливо: коло додається пізніше і може перекривати іконку.
+                // Підіймаємо іконку/текст/тап-зону над колом.
+                if let icon = iconViewsByTab[item.tab] {
+                    bringSubviewToFront(icon)
+                }
+                if let label = titleLabelsByTab[item.tab] {
+                    bringSubviewToFront(label)
+                }
+                if let tap = tapButtonsByTab[item.tab] {
+                    bringSubviewToFront(tap)
+                }
             }
         }
     }
@@ -130,35 +143,46 @@ final class CustomTabBarView: UIView {
     }
 
     private func toggleCenterButton(animated: Bool) {
+        if centerAnimating { return }
         centerToggled.toggle()
 
         guard let circle = centerCircleByTab[.create],
               let iconView = iconViewsByTab[.create] else { return }
 
         let nextSymbol = centerToggled ? "xmark" : "list.bullet"
-        let rotation = centerToggled ? (CGFloat.pi * 2) : -(CGFloat.pi * 2)
-
-        let updateIcon = {
-            iconView.image = UIImage(systemName: nextSymbol)
-        }
+        // 180° оберт при toggle.
+        let halfTurn = CGFloat.pi
+        let rotation = centerToggled ? halfTurn : -halfTurn
 
         guard animated else {
-            updateIcon()
+            iconView.image = UIImage(systemName: nextSymbol)
             return
         }
 
-        UIView.animate(withDuration: 0.26, delay: 0, options: [.curveEaseInOut]) {
-            circle.transform = circle.transform.rotated(by: rotation)
-            iconView.transform = iconView.transform.rotated(by: rotation)
-        } completion: { _ in
-            // Скидаємо transform, щоб не накопичувався.
-            circle.transform = .identity
-            iconView.transform = .identity
+        centerAnimating = true
+
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self] in
+            guard let self else { return }
+            UIView.transition(with: iconView, duration: 0.12, options: [.transitionCrossDissolve, .allowUserInteraction]) {
+                iconView.image = UIImage(systemName: nextSymbol)
+            } completion: { _ in
+                self.centerAnimating = false
+            }
         }
 
-        UIView.transition(with: iconView, duration: 0.12, options: [.transitionCrossDissolve, .allowUserInteraction]) {
-            updateIcon()
-        }
+        let spinDuration: CFTimeInterval = 0.32
+        let spin = CABasicAnimation(keyPath: "transform.rotation.z")
+        spin.duration = spinDuration
+        spin.fromValue = 0
+        spin.toValue = rotation
+        spin.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        spin.isAdditive = true
+
+        circle.layer.add(spin, forKey: "centerSpin")
+        iconView.layer.add(spin, forKey: "centerSpin")
+
+        CATransaction.commit()
     }
 
     // Щоб середня кнопка (яка вище за bounds) все одно ловила дотики,
