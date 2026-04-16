@@ -156,6 +156,7 @@ final class CustomTabBarView: UIView {
 
         guard animated else {
             iconView.image = UIImage(systemName: nextSymbol)
+            applyCenterGlow(to: circle, enabled: centerToggled, animated: false)
             return
         }
 
@@ -167,6 +168,7 @@ final class CustomTabBarView: UIView {
             UIView.transition(with: iconView, duration: 0.12, options: [.transitionCrossDissolve, .allowUserInteraction]) {
                 iconView.image = UIImage(systemName: nextSymbol)
             } completion: { _ in
+                self.applyCenterGlow(to: circle, enabled: self.centerToggled, animated: true)
                 self.centerAnimating = false
             }
         }
@@ -183,6 +185,59 @@ final class CustomTabBarView: UIView {
         iconView.layer.add(spin, forKey: "centerSpin")
 
         CATransaction.commit()
+    }
+
+    private func applyCenterGlow(to circle: UIView, enabled: Bool, animated: Bool) {
+        let changes = {
+            if enabled {
+                // Glow по всіх боках (золотий).
+                circle.layer.shadowColor = UIColor.systemYellow.cgColor
+                circle.layer.shadowOpacity = 0.85
+                circle.layer.shadowRadius = 18
+                circle.layer.shadowOffset = .zero
+            } else {
+                // Звичайна тінь вниз (як було).
+                circle.layer.shadowColor = UIColor.black.cgColor
+                circle.layer.shadowOpacity = 0.25
+                circle.layer.shadowRadius = 12
+                circle.layer.shadowOffset = CGSize(width: 0, height: 4)
+            }
+        }
+
+        if animated {
+            let duration: CFTimeInterval = 0.18
+            let animOpacity = CABasicAnimation(keyPath: "shadowOpacity")
+            animOpacity.duration = duration
+            animOpacity.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            animOpacity.fromValue = circle.layer.shadowOpacity
+
+            let animRadius = CABasicAnimation(keyPath: "shadowRadius")
+            animRadius.duration = duration
+            animRadius.timingFunction = animOpacity.timingFunction
+            animRadius.fromValue = circle.layer.shadowRadius
+
+            let animOffset = CABasicAnimation(keyPath: "shadowOffset")
+            animOffset.duration = duration
+            animOffset.timingFunction = animOpacity.timingFunction
+            animOffset.fromValue = NSValue(cgSize: circle.layer.shadowOffset)
+
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            changes()
+            CATransaction.commit()
+
+            animOpacity.toValue = circle.layer.shadowOpacity
+            animRadius.toValue = circle.layer.shadowRadius
+            animOffset.toValue = NSValue(cgSize: circle.layer.shadowOffset)
+            circle.layer.add(animOpacity, forKey: "glowOpacity")
+            circle.layer.add(animRadius, forKey: "glowRadius")
+            circle.layer.add(animOffset, forKey: "glowOffset")
+        } else {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            changes()
+            CATransaction.commit()
+        }
     }
 
     // Щоб середня кнопка (яка вище за bounds) все одно ловила дотики,
