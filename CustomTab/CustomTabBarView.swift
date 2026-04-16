@@ -259,7 +259,7 @@ final class CustomTabBarView: UIView {
             let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(index) + 0.5)
 
             if item.isCenter {
-                let circleSize: CGFloat = 56
+                let circleSize: CGFloat = 66
                 let circleY = barTopY - 18 - contentLift
                 centerCircleByTab[tab]?.frame = CGRect(x: centerX - circleSize / 2, y: circleY, width: circleSize, height: circleSize)
 
