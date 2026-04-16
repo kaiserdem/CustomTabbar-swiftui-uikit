@@ -48,6 +48,9 @@ final class CustomTabBarView: UIView {
     /// Зсув жовтого кола **вниз** (у pt). Більше значення — коло нижче (`circleY` збільшується).
     private let centerCircleExtraDown: CGFloat = 0
 
+    /// Прозорість темного фону бару (0…1). Менше — помітніший контент, що заходить під таббар.
+    private let tabBarBackgroundAlpha: CGFloat = 0.78
+
     // Геометрія заглиблення для анімації індикатора.
     private var notchXLeft: CGFloat = 0
     private var notchXRight: CGFloat = 0
@@ -72,18 +75,20 @@ final class CustomTabBarView: UIView {
 
     private func setupUI() {
         clipsToBounds = false
+        isOpaque = false
+        backgroundColor = .clear
 
-        // Малюємо фон через shape layer (не mask), щоб “виямка” була темною,
-        // а не прозорою (і не показувала білий контент позаду).
+        // Малюємо фон через shape layer (не mask). Напівпрозорий fill — видно відтінок контенту під баром.
         backgroundView.backgroundColor = .clear
+        backgroundView.isOpaque = false
         backgroundView.isUserInteractionEnabled = false
-        backgroundShapeLayer.fillColor = UIColor(white: 0.12, alpha: 1.0).cgColor
+        backgroundShapeLayer.fillColor = UIColor(white: 0.12, alpha: tabBarBackgroundAlpha).cgColor
         backgroundShapeLayer.strokeColor = nil
         backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
 
         // Ледь помітна лінія по верхньому контуру (щоб бар не зливався з чорним фоном).
         backgroundTopStrokeLayer.fillColor = UIColor.clear.cgColor
-        backgroundTopStrokeLayer.strokeColor = UIColor.white.withAlphaComponent(0.10).cgColor
+        backgroundTopStrokeLayer.strokeColor = UIColor.white.withAlphaComponent(0.14).cgColor
         backgroundTopStrokeLayer.lineWidth = 1
         backgroundTopStrokeLayer.lineCap = .round
         backgroundTopStrokeLayer.lineJoin = .round
@@ -616,9 +621,9 @@ final class CustomTabBarView: UIView {
                 let indicatorWidth: CGFloat = 38
                 slotRects[tab] = CGRect(x: centerX - indicatorWidth / 2, y: indicatorY, width: indicatorWidth, height: indicatorHeight)
             } else {
-                let iconSize: CGFloat = (tab == .home || tab == .notifications) ? 30 : 26
+                let iconSize: CGFloat = tab == .home ? 31 : 26
                 let iconBaseY = barTopY + 22 - contentLift + iconsDrop
-                // Більші іконки трохи піднімаємо, щоб центр лишався ближче до решти вкладок.
+                // Лише «Головна»: трохи більша іконка; піднімаємо, щоб центр лишався на лінії з іншими.
                 let iconY = iconBaseY - (iconSize - 26) / 2
                 iconViewsByTab[tab]?.frame = CGRect(x: centerX - iconSize / 2, y: iconY, width: iconSize, height: iconSize)
 

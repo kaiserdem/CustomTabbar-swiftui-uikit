@@ -60,7 +60,8 @@ final class CustomTabController: UIViewController, TabNavigator {
             containerView.topAnchor.constraint(equalTo: view.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            containerView.bottomAnchor.constraint(equalTo: tabBarView.topAnchor),
+            // До низу екрану: SwiftUI-фон екрану може заходити під напівпрозорий таббар.
+            containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
             tabBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -76,6 +77,8 @@ final class CustomTabController: UIViewController, TabNavigator {
             let rootRoute = router.route(for: tab)
             let nav = UINavigationController(rootViewController: makeHostingController(for: rootRoute))
             nav.delegate = self
+            nav.view.backgroundColor = .clear
+            nav.navigationBar.isTranslucent = true
             navControllers[tab] = nav
             tabByNavController[nav] = tab
         }
@@ -85,7 +88,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         // `TabRouter` передаємо в SwiftUI як `@EnvironmentObject`.
         let root = RouteViewFactory.makeView(for: route, router: router)
         let vc = RouteHostingController(route: route, rootView: root)
-        vc.view.backgroundColor = RouteViewFactory.uiScreenBackground(for: route)
+        vc.view.backgroundColor = .clear
         return vc
     }
 
@@ -150,6 +153,8 @@ private final class RouteHostingController: UIHostingController<AnyView> {
     init(route: AppRoute, rootView: AnyView) {
         self.route = route
         super.init(rootView: rootView)
+        // Щоб SwiftUI міг малювати під системним навбаром і до країв екрану.
+        edgesForExtendedLayout = [.top, .bottom, .left, .right]
     }
 
     @objc required dynamic init?(coder aDecoder: NSCoder) {
@@ -167,14 +172,15 @@ private final class RouteHostingController: UIHostingController<AnyView> {
     }
 
     private func applyScreenChrome() {
-        let bg = RouteViewFactory.uiScreenBackground(for: route)
-        view.backgroundColor = bg
+        // Колір екрану задає SwiftUI у в’ю; тут лише прозорий шар, щоб був виден повний фон.
+        view.backgroundColor = .clear
         guard let nav = navigationController else { return }
-        nav.view.backgroundColor = bg
+        nav.view.backgroundColor = .clear
+        nav.navigationBar.isTranslucent = true
 
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = bg
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = .clear
         appearance.shadowColor = .clear
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
@@ -195,13 +201,10 @@ extension CustomTabController: UINavigationControllerDelegate {
         syncChromeBackground(with: navigationController)
     }
 
-    /// Фон під статус-баром, контейнером і навігацією — як у верхнього екрана стеку.
     private func syncChromeBackground(with nav: UINavigationController) {
-        guard let hosting = nav.topViewController as? RouteHostingController else { return }
-        let bg = RouteViewFactory.uiScreenBackground(for: hosting.route)
-        containerView.backgroundColor = bg
-        view.backgroundColor = bg
-        nav.view.backgroundColor = bg
+        containerView.backgroundColor = .clear
+        view.backgroundColor = .clear
+        nav.view.backgroundColor = .clear
     }
 }
 

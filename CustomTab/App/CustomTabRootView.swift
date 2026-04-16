@@ -5,7 +5,7 @@ struct CustomTabRootView: View {
 
     var body: some View {
         TabControllerHost(router: router)
-            .ignoresSafeArea(.keyboard)
+            .ignoresSafeArea(.all)
             .preferredColorScheme(.dark)
     }
 }

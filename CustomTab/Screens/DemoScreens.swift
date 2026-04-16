@@ -3,26 +3,38 @@ import SwiftUI
 struct HomeRootView: View {
     @EnvironmentObject private var router: TabRouter
 
+    /// Колір цього екрану задаєш тут (і лише тут для цього в’ю).
+    private let screenBackground = Color(red: 0.07, green: 0.10, blue: 0.24)
+
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Home Root")
-                .font(.title2)
-                .bold()
-
-            Button("Push: Home Details") {
-                router.push(.homeDetails, animated: true)
+//        ZStack {
+//            Color.red
+//                .scaledToFill()
+//                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                Text("Home Root")
+                    .font(.title2)
+                    .bold()
+                
+                Button("Push: Home Details") {
+                    router.push(.homeDetails, animated: true)
+                }
+                
+                Button("Перемкнути на Profile і показати Settings") {
+                    router.selectTab(.profile, to: .profileSettings, animated: true)
+                }
             }
-
-            Button("Перемкнути на Profile і показати Settings") {
-                router.selectTab(.profile, to: .profileSettings, animated: true)
-            }
-        }
-        .padding()
+            .padding()
+            .tabScreenChrome(background: .red)
+     //   }
     }
 }
 
 struct HomeDetailsView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.09, green: 0.12, blue: 0.28)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -39,11 +51,14 @@ struct HomeDetailsView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct BrowseRootView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.06, green: 0.16, blue: 0.12)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -60,11 +75,14 @@ struct BrowseRootView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct BrowseDetailsView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.05, green: 0.20, blue: 0.14)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -77,11 +95,14 @@ struct BrowseDetailsView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct CreateRootView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.14, green: 0.07, blue: 0.20)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -98,11 +119,14 @@ struct CreateRootView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct NotificationsRootView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.18, green: 0.10, blue: 0.06)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -119,11 +143,14 @@ struct NotificationsRootView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct NotificationsDetailsView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.22, green: 0.12, blue: 0.07)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -136,11 +163,14 @@ struct NotificationsDetailsView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct ProfileRootView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.10, green: 0.09, blue: 0.22)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -157,11 +187,14 @@ struct ProfileRootView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
 
 struct ProfileSettingsView: View {
     @EnvironmentObject private var router: TabRouter
+
+    private let screenBackground = Color(red: 0.08, green: 0.07, blue: 0.26)
 
     var body: some View {
         VStack(spacing: 16) {
@@ -174,6 +207,6 @@ struct ProfileSettingsView: View {
             }
         }
         .padding()
+        .tabScreenChrome(background: screenBackground)
     }
 }
-
