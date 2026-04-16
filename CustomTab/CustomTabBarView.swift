@@ -23,6 +23,7 @@ final class CustomTabBarView: UIView {
     private let indicatorSegmentsCount = 20
     private let indicatorRibbonWidthScale: CGFloat = 0.72
     private let indicatorSegmentFillFactor: CGFloat = 1.16
+    private let indicatorMoveDuration: CFTimeInterval = 0.22
     private var indicatorCurrentCenterX: CGFloat?
     private var indicatorCurrentBaseY: CGFloat?
     private var indicatorCurrentWidth: CGFloat?
@@ -89,7 +90,7 @@ final class CustomTabBarView: UIView {
             let label = UILabel()
             label.text = item.title
             label.textAlignment = .center
-            label.font = .systemFont(ofSize: 14, weight: .semibold)
+            label.font = .systemFont(ofSize: 11, weight: .semibold)
             addSubview(label)
             titleLabelsByTab[item.tab] = label
 
@@ -187,7 +188,7 @@ final class CustomTabBarView: UIView {
         layoutIndicatorSegments(centerX: targetCenterX, baseY: baseY, width: indicatorWidth, height: indicatorHeight)
         CATransaction.commit()
 
-        animateIndicatorSegments(fromCenterX: fromX, fromBaseY: fromBaseY, toCenterX: targetCenterX, toBaseY: baseY, width: indicatorWidth, height: indicatorHeight, duration: 2.25)
+        animateIndicatorSegments(fromCenterX: fromX, fromBaseY: fromBaseY, toCenterX: targetCenterX, toBaseY: baseY, width: indicatorWidth, height: indicatorHeight, duration: indicatorMoveDuration)
         animateShimmer(from: oldTab, to: tab)
     }
 
@@ -340,8 +341,8 @@ final class CustomTabBarView: UIView {
         let indicatorHeight: CGFloat = 4
 
         // Позиціонуємо кнопки, іконки, лейбли, а також слоти для індикатора.
-        let iconsDrop: CGFloat = 6
-        let labelsLift: CGFloat = 6
+        let iconsDrop: CGFloat = 8
+        let labelsLift: CGFloat = 8
         for (index, item) in items.enumerated() {
             let tab = item.tab
             let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(index) + 0.5)
