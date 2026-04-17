@@ -22,15 +22,14 @@ final class CustomTabController: UIViewController, TabNavigator {
             .init(tab: .browse, systemImage: "play", isCenter: false, title: "Лобі"),
             .init(tab: .create, systemImage: "list.bullet", isCenter: true, title: "Меню"),
             .init(tab: .notifications, systemImage: "gift", isCenter: false, title: "Бонуси"),
-            .init(tab: .profile, systemImage: "person", isCenter: false, title: "Панель")
+            .init(tab: .profile, systemImage: "person", isCenter: false, title: "Профіль")
         ]
 
         self.tabBarView = CustomTabBarView(
             items: items,
             selectedTab: router.selectedTab,
             onSelect: { [weak router] tab in
-                guard let router else { return }
-                router.selectTab(tab, to: router.route(for: tab), animated: true)
+                router?.selectTab(tab, animated: true)
             }
         )
 
@@ -46,7 +45,13 @@ final class CustomTabController: UIViewController, TabNavigator {
         super.viewDidLoad()
         setupLayout()
         setupNavigationControllers()
-        selectTab(currentTab, to: router.route(for: currentTab), animated: false)
+
+        // Відрендеримо стеки для всіх вкладок (root-и).
+        for tab in TabIdentifier.allCases {
+            setStack(router.stack(for: tab), for: tab, animated: false)
+        }
+
+        selectTab(currentTab, animated: false)
     }
 
     private func setupLayout() {
@@ -60,12 +65,10 @@ final class CustomTabController: UIViewController, TabNavigator {
             containerView.topAnchor.constraint(equalTo: view.topAnchor),
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            // До низу екрану: SwiftUI-фон екрану може заходити під напівпрозорий таббар.
             containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
             tabBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            // Трохи вище за нижній край екрану — див. `TabScreenMetrics.tabBarBottomOffset`.
             tabBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -TabScreenMetrics.tabBarBottomOffset),
             tabBarView.heightAnchor.constraint(equalToConstant: TabScreenMetrics.tabBarViewHeight)
         ])
@@ -73,8 +76,7 @@ final class CustomTabController: UIViewController, TabNavigator {
 
     private func setupNavigationControllers() {
         for tab in TabIdentifier.allCases {
-            let rootRoute = router.route(for: tab)
-            let nav = UINavigationController(rootViewController: makeHostingController(for: rootRoute))
+            let nav = UINavigationController()
             nav.delegate = self
             nav.view.backgroundColor = .clear
             nav.navigationBar.isTranslucent = true
@@ -83,28 +85,21 @@ final class CustomTabController: UIViewController, TabNavigator {
         }
     }
 
-    private func makeHostingController(for route: AppRoute) -> UIViewController {
-        // `TabRouter` передаємо в SwiftUI як `@EnvironmentObject`.
-        let root = RouteViewFactory.makeView(for: route, router: router)
-        let vc = RouteHostingController(route: route, rootView: root)
+    private func makeHostingController(for screen: ScreenRoute) -> UIViewController {
+        let root = RouteViewFactory.makeView(for: screen, router: router)
+        let vc = ScreenHostingController(screen: screen, rootView: root)
         vc.view.backgroundColor = .clear
         return vc
     }
 
     // MARK: - TabNavigator
 
-    func selectTab(_ tab: TabIdentifier, to route: AppRoute, animated: Bool) {
+    func selectTab(_ tab: TabIdentifier, animated: Bool) {
         currentTab = tab
         tabBarView.setSelectedTab(tab, animated: animated)
 
         guard let nav = navControllers[tab] else { return }
 
-        // Переконуємось, що вкладка показує конкретний екран.
-        if (nav.topViewController as? RouteHostingController)?.route != route {
-            nav.setViewControllers([makeHostingController(for: route)], animated: false)
-        }
-
-        // Міняємо контейнерний child-контролер.
         if currentNavController !== nav {
             switchToNavController(nav, animated: animated)
         } else {
@@ -112,19 +107,39 @@ final class CustomTabController: UIViewController, TabNavigator {
         }
     }
 
-    func push(_ route: AppRoute, animated: Bool) {
-        // Переходи між вкладками робить TabRouter.
-        guard let nav = navControllers[currentTab] else { return }
+    func setStack(_ stack: [ScreenRoute], for tab: TabIdentifier, animated: Bool) {
+        guard let nav = navControllers[tab] else { return }
+        let vcs = stack.map(makeHostingController(for:))
+        nav.setViewControllers(vcs, animated: animated)
 
-        let vc = makeHostingController(for: route)
+        if tab == currentTab {
+            syncChromeBackground(with: nav)
+        }
+    }
+
+    func push(_ screen: ScreenRoute, on tab: TabIdentifier, animated: Bool) {
+        guard let nav = navControllers[tab] else { return }
+        let vc = makeHostingController(for: screen)
         nav.pushViewController(vc, animated: animated)
+
+        if tab == currentTab {
+            syncChromeBackground(with: nav)
+        }
+    }
+
+    func pop(on tab: TabIdentifier, animated: Bool) {
+        guard let nav = navControllers[tab] else { return }
+        nav.popViewController(animated: animated)
+
+        if tab == currentTab {
+            syncChromeBackground(with: nav)
+        }
     }
 
     private func switchToNavController(_ nav: UINavigationController, animated: Bool) {
         let fromNav = currentNavController
         currentNavController = nav
 
-        // Прибираємо попередній показаний контролер.
         if let fromNav {
             fromNav.willMove(toParent: nil)
             fromNav.view.removeFromSuperview()
@@ -138,21 +153,25 @@ final class CustomTabController: UIViewController, TabNavigator {
         nav.didMove(toParent: self)
         syncChromeBackground(with: nav)
 
-        if animated, let fromNav {
-            // Невелика fade-анімація при перемиканні.
+        if animated, let _ = fromNav {
             nav.view.alpha = 0
-            UIView.animate(withDuration: 0.2, animations: { nav.view.alpha = 1 })
+            UIView.animate(withDuration: 0.2) { nav.view.alpha = 1 }
         }
+    }
+
+    private func syncChromeBackground(with nav: UINavigationController) {
+        containerView.backgroundColor = .clear
+        view.backgroundColor = .clear
+        nav.view.backgroundColor = .clear
     }
 }
 
-private final class RouteHostingController: UIHostingController<AnyView> {
-    let route: AppRoute
+private final class ScreenHostingController: UIHostingController<AnyView> {
+    let screen: ScreenRoute
 
-    init(route: AppRoute, rootView: AnyView) {
-        self.route = route
+    init(screen: ScreenRoute, rootView: AnyView) {
+        self.screen = screen
         super.init(rootView: rootView)
-        // Щоб SwiftUI міг малювати під системним навбаром і до країв екрану.
         edgesForExtendedLayout = [.top, .bottom, .left, .right]
     }
 
@@ -171,7 +190,6 @@ private final class RouteHostingController: UIHostingController<AnyView> {
     }
 
     private func applyScreenChrome() {
-        // Колір екрану задає SwiftUI у в’ю; тут лише прозорий шар, щоб був виден повний фон.
         view.backgroundColor = .clear
         guard let nav = navigationController else { return }
         nav.view.backgroundColor = .clear
@@ -195,15 +213,13 @@ private final class RouteHostingController: UIHostingController<AnyView> {
 extension CustomTabController: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
         guard let tab = tabByNavController[navigationController] else { return }
-        guard let hosting = viewController as? RouteHostingController else { return }
-        router.setRoute(hosting.route, for: tab)
+
+        // Синхронізуємо стек у router з фактичним стеком UIKit (back-swipe).
+        let stack: [ScreenRoute] = navigationController.viewControllers.compactMap { vc in
+            (vc as? ScreenHostingController)?.screen
+        }
+
+        router.syncStackFromNavigator(stack, for: tab)
         syncChromeBackground(with: navigationController)
     }
-
-    private func syncChromeBackground(with nav: UINavigationController) {
-        containerView.backgroundColor = .clear
-        view.backgroundColor = .clear
-        nav.view.backgroundColor = .clear
-    }
 }
-

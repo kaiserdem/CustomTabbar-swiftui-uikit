@@ -66,11 +66,11 @@ struct HomeRootView: View {
                                     textColor: preset.animatedBorder,
                                     fontSize: 18
                                 ) {
-                                    router.selectTab(.browse, to: .browseRoot, animated: true)
+                                    router.selectTab(.browse, setStack: [.browseRoot], animated: true)
                                 }
 
                                 Button {
-                                    router.selectTab(.notifications, to: .notificationsRoot, animated: true)
+                                    router.selectTab(.notifications, setStack: [.notificationsRoot], animated: true)
                                 } label: {
                                     Text("BONUS")
                                         .font(.system(size: 16, weight: .black, design: .rounded))
@@ -127,7 +127,7 @@ struct HomeRootView: View {
                             .buttonStyle(.borderedProminent)
 
                             Button("Profile Settings") {
-                                router.selectTab(.profile, to: .profileSettings, animated: true)
+                                router.selectTab(.profile, setStack: [.profileRoot, .profileSettings], animated: true)
                             }
                             .buttonStyle(.bordered)
                         }
@@ -196,7 +196,7 @@ struct HomeDetailsView: View {
                 .bold()
 
             Button("Показати Browse Details в іншій вкладці") {
-                router.selectTab(.browse, to: .browseDetails, animated: true)
+                router.selectTab(.browse, setStack: [.browseRoot, .browseDetails], animated: true)
             }
 
             Button("Назад може бути стандартним pop у цій вкладці") {
@@ -223,8 +223,8 @@ struct BrowseRootView: View {
                 router.push(.browseDetails, animated: true)
             }
 
-            Button("Перемкнути на Notifications і показати Details") {
-                router.selectTab(.notifications, to: .notificationsDetails, animated: true)
+            Button("Перемкнути на Бонуси і показати Деталі") {
+                router.selectTab(.notifications, setStack: [.notificationsRoot, .notificationsDetails], animated: true)
             }
         }
         .padding()
@@ -244,7 +244,7 @@ struct BrowseDetailsView: View {
                 .bold()
 
             Button("Перемкнути на Home і показати Details") {
-                router.selectTab(.home, to: .homeDetails, animated: true)
+                router.selectTab(.home, setStack: [.homeRoot, .homeDetails], animated: true)
             }
         }
         .padding()
@@ -264,10 +264,10 @@ struct CreateRootView: View {
                 .bold()
 
             Button("Перейти в Profile Settings") {
-                router.selectTab(.profile, to: .profileSettings, animated: true)
+                router.selectTab(.profile, setStack: [.profileRoot, .profileSettings], animated: true)
             }
 
-            Button("Push: Notifications Details") {
+            Button("Показати деталі бонусів") {
                 router.push(.notificationsDetails, animated: true)
             }
         }
@@ -283,16 +283,16 @@ struct NotificationsRootView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Notifications Root")
+            Text("Бонуси")
                 .font(.title2)
                 .bold()
 
-            Button("Push: Notifications Details") {
+            Button("Показати деталі бонусів") {
                 router.push(.notificationsDetails, animated: true)
             }
 
             Button("Перемкнути на Home Root") {
-                router.selectTab(.home, to: .homeRoot, animated: true)
+                router.selectTab(.home, setStack: [.homeRoot], animated: true)
             }
         }
         .padding()
@@ -307,12 +307,12 @@ struct NotificationsDetailsView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Notifications Details")
+            Text("Деталі бонусів")
                 .font(.title2)
                 .bold()
 
             Button("Відкрити Browse Root (конкретний екран)") {
-                router.selectTab(.browse, to: .browseRoot, animated: true)
+                router.selectTab(.browse, setStack: [.browseRoot], animated: true)
             }
         }
         .padding()
@@ -336,7 +336,7 @@ struct ProfileRootView: View {
             }
 
             Button("Перемкнути на Home і показати Details") {
-                router.selectTab(.home, to: .homeDetails, animated: true)
+                router.selectTab(.home, setStack: [.homeRoot, .homeDetails], animated: true)
             }
         }
         .padding()
@@ -356,7 +356,7 @@ struct ProfileSettingsView: View {
                 .bold()
 
             Button("Показати Create вкладку") {
-                router.selectTab(.create, to: .createRoot, animated: true)
+                router.selectTab(.create, setStack: [.createRoot], animated: true)
             }
         }
         .padding()

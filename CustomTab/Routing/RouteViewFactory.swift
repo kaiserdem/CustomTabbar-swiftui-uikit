@@ -1,33 +1,44 @@
 import SwiftUI
 
 enum RouteViewFactory {
-    static func makeView(for route: AppRoute, router: TabRouter) -> AnyView {
-        let view: AnyView
-        switch route {
-        case .homeRoot:
-            view = AnyView(HomeRootView().environmentObject(router))
-        case .homeDetails:
-            view = AnyView(HomeDetailsView().environmentObject(router))
+    static func makeView(for screen: ScreenRoute, router: TabRouter) -> AnyView {
+        // В’юхи лишаються SwiftUI. Тут лише мапінг `screen.id -> View`.
+        switch screen.id {
+        case "home.root":
+            return AnyView(HomeRootView().environmentObject(router))
+        case "home.details":
+            return AnyView(HomeDetailsView().environmentObject(router))
 
-        case .browseRoot:
-            view = AnyView(BrowseRootView().environmentObject(router))
-        case .browseDetails:
-            view = AnyView(BrowseDetailsView().environmentObject(router))
+        case "browse.root":
+            return AnyView(BrowseRootView().environmentObject(router))
+        case "browse.details":
+            return AnyView(BrowseDetailsView().environmentObject(router))
 
-        case .createRoot:
-            view = AnyView(CreateRootView().environmentObject(router))
+        case "create.root":
+            return AnyView(CreateRootView().environmentObject(router))
 
-        case .notificationsRoot:
-            view = AnyView(NotificationsRootView().environmentObject(router))
-        case .notificationsDetails:
-            view = AnyView(NotificationsDetailsView().environmentObject(router))
+        case "notifications.root":
+            return AnyView(NotificationsRootView().environmentObject(router))
+        case "notifications.details":
+            return AnyView(NotificationsDetailsView().environmentObject(router))
 
-        case .profileRoot:
-            view = AnyView(ProfileRootView().environmentObject(router))
-        case .profileSettings:
-            view = AnyView(ProfileSettingsView().environmentObject(router))
+        case "profile.root":
+            return AnyView(ProfileRootView().environmentObject(router))
+        case "profile.settings":
+            return AnyView(ProfileSettingsView().environmentObject(router))
+
+        default:
+            return AnyView(
+                VStack(spacing: 12) {
+                    Text("Unknown screen")
+                        .font(.title3).bold()
+                    Text(screen.id)
+                        .font(.footnote)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .padding()
+                .tabScreenChrome(background: Color.black)
+            )
         }
-
-        return view
     }
 }
