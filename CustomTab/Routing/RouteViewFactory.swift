@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum RouteViewFactory {
-    /// Повертає SwiftUI-екран без `AnyView`. `TabRouter` інжектиться зовні через `.environmentObject`.
+    
     @ViewBuilder
     static func makeView(for screen: ScreenRoute) -> some View {
         switch screen.id {

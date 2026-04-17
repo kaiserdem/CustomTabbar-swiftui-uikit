@@ -12,13 +12,13 @@ final class CustomTabBarView: UIView {
     private var selectedTab: TabIdentifier?
     private var onSelect: ((TabIdentifier) -> Void)?
 
-    private var slotRects: [TabIdentifier: CGRect] = [:] // для індикатора (лінія)
+    private var slotRects: [TabIdentifier: CGRect] = [:] 
 
     private let backgroundView = UIView()
     private let backgroundShapeLayer = CAShapeLayer()
     private let backgroundTopStrokeLayer = CAShapeLayer()
 
-    // Індикатор-стрічка як набір сегментів (щоб вигинатися по кривій).
+    
     private let indicatorSegmentsContainer = CALayer()
     private var indicatorSegments: [CALayer] = []
     private let indicatorSegmentsCount = 20
@@ -45,17 +45,17 @@ final class CustomTabBarView: UIView {
     private let centerIconSpinDuration: TimeInterval = 0.32
     private let centerIconScaleDuration: TimeInterval = 0.18
 
-    /// Зсув жовтого кола **вниз** (у pt). Більше значення — коло нижче (`circleY` збільшується).
+    
     private let centerCircleExtraDown: CGFloat = 0
 
-    /// Прозорість темного фону бару (0…1). Менше — помітніший контент, що заходить під таббар.
+    
     private let tabBarBackgroundAlpha: CGFloat = 0.78
 
-    // Геометрія заглиблення для анімації індикатора.
+    
     private var notchXLeft: CGFloat = 0
     private var notchXRight: CGFloat = 0
     private var notchDepth: CGFloat = 0
-    private var notchSamples: [CGPoint] = [] // x в координатах Self, y = localYOffset (0...yBottom)
+    private var notchSamples: [CGPoint] = [] 
 
     init(
         items: [Item],
@@ -78,7 +78,7 @@ final class CustomTabBarView: UIView {
         isOpaque = false
         backgroundColor = .clear
 
-        // Малюємо фон через shape layer (не mask). Напівпрозорий fill — видно відтінок контенту під баром.
+        
         backgroundView.backgroundColor = .clear
         backgroundView.isOpaque = false
         backgroundView.isUserInteractionEnabled = false
@@ -86,7 +86,7 @@ final class CustomTabBarView: UIView {
         backgroundShapeLayer.strokeColor = nil
         backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
 
-        // Ледь помітна лінія по верхньому контуру (щоб бар не зливався з чорним фоном).
+        
         backgroundTopStrokeLayer.fillColor = UIColor.clear.cgColor
         backgroundTopStrokeLayer.strokeColor = UIColor.white.withAlphaComponent(0.14).cgColor
         backgroundTopStrokeLayer.lineWidth = 1
@@ -100,7 +100,7 @@ final class CustomTabBarView: UIView {
         ensureIndicatorSegments()
 
         for item in items {
-            // Tap area
+            
             let tap = UIButton(type: .custom)
             tap.backgroundColor = .clear
             tap.addTarget(self, action: #selector(didTap(_:)), for: .touchUpInside)
@@ -108,13 +108,13 @@ final class CustomTabBarView: UIView {
             addSubview(tap)
             tapButtonsByTab[item.tab] = tap
 
-            // Icon
+            
             let icon = UIImageView(image: UIImage(systemName: item.systemImage))
             icon.contentMode = .scaleAspectFit
             addSubview(icon)
             iconViewsByTab[item.tab] = icon
 
-            // Title (для не-центральних, і для центру теж буде підпис)
+            
             let label = UILabel()
             label.text = item.title
             label.textAlignment = .center
@@ -134,8 +134,8 @@ final class CustomTabBarView: UIView {
                 addSubview(circle)
                 centerCircleByTab[item.tab] = circle
 
-                // Важливо: коло додається пізніше і може перекривати іконку.
-                // Підіймаємо іконку/текст/тап-зону над колом.
+                
+                
                 if let icon = iconViewsByTab[item.tab] {
                     bringSubviewToFront(icon)
                 }
@@ -288,8 +288,8 @@ final class CustomTabBarView: UIView {
         circle.layer.add(animOffset, forKey: "centerGlowOffset")
     }
 
-    // Щоб середня кнопка (яка вище за bounds) все одно ловила дотики,
-    // як в підході з custom UITabBar.
+    
+    
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard !isHidden, alpha > 0.01 else { return nil }
         for member in subviews.reversed() {
@@ -305,11 +305,11 @@ final class CustomTabBarView: UIView {
         let oldTab = selectedTab
         selectedTab = tab
 
-        // Оновлюємо іконки/тексти.
+        
         let selectedColor = UIColor.systemYellow
         let unselectedColor = UIColor(white: 0.55, alpha: 1.0)
 
-        // Якщо ми йдемо з меню — відміняємо заплановану підсвітку.
+        
         pendingMenuHighlight?.cancel()
         pendingMenuHighlight = nil
 
@@ -322,7 +322,7 @@ final class CustomTabBarView: UIView {
 
             if item.isCenter {
                 iconColor = .black
-                // Для меню робимо відкладену підсвітку (після того як індикатор сховається).
+                
                 titleColor = isSelected ? unselectedColor : unselectedColor
             } else {
                 iconColor = isSelected ? selectedColor : unselectedColor
@@ -334,19 +334,19 @@ final class CustomTabBarView: UIView {
         }
 
         guard let targetRect = slotRects[tab] else {
-            // layout ще не відпрацював
+            
             return
         }
 
         updateCenterIconForSelection(from: oldTab, to: tab, animated: animated)
 
-        // Якщо обрана середня вкладка — спочатку анімуємо індикатор у центр (в заглиблення),
-        // а вже після того ховаємо його (щоб виглядало як “перетворення” у текст).
+        
+        
         if tab == .create {
-            // Показуємо індикатор (якщо був прихований), щоб було видно рух.
+            
             setIndicatorHidden(false, animated: animated)
 
-            // Ціль руху — центр вкладки create.
+            
             guard let centerRect = slotRects[.create] else { return }
             let indicatorWidth = centerRect.width * indicatorRibbonWidthScale
             let indicatorHeight = max(1.5, centerRect.height * indicatorThicknessScale)
@@ -361,7 +361,7 @@ final class CustomTabBarView: UIView {
             indicatorCurrentWidth = indicatorWidth
             indicatorCurrentHeight = indicatorHeight
 
-            // Кінцевий стан.
+            
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             layoutIndicatorSegments(centerX: targetCenterX, baseY: baseY, width: indicatorWidth, height: indicatorHeight)
@@ -378,12 +378,12 @@ final class CustomTabBarView: UIView {
                     duration: indicatorMoveDuration
                 )
 
-                // Ховаємо після завершення руху вниз.
+                
                 let work = DispatchWorkItem { [weak self] in
                     guard let self else { return }
                     self.setIndicatorHidden(true, animated: true)
 
-                    // Після fade-out індикатора підсвічуємо "Меню" жовтим, ніби індикатор його “фарбує”.
+                    
                     let fadeDuration: TimeInterval = 0.12
                     DispatchQueue.main.asyncAfter(deadline: .now() + fadeDuration) { [weak self] in
                         self?.setMenuTitleHighlighted(true, animated: true)
@@ -428,7 +428,7 @@ final class CustomTabBarView: UIView {
         indicatorCurrentWidth = indicatorWidth
         indicatorCurrentHeight = indicatorHeight
 
-        // Оновлюємо кінцевий стан без implicit-анімацій.
+        
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         layoutIndicatorSegments(centerX: targetCenterX, baseY: baseY, width: indicatorWidth, height: indicatorHeight)
@@ -475,12 +475,12 @@ final class CustomTabBarView: UIView {
     }
 
     private func indicatorAngle(forCenterX x: CGFloat) -> CGFloat {
-        // Кут дотичної до кривої заглиблення в точці x.
-        // Поза заглибленням — 0 (горизонтально).
+        
+        
         guard notchSamples.count >= 2 else { return 0 }
         if x <= notchSamples[0].x || x >= notchSamples[notchSamples.count - 1].x { return 0 }
 
-        // Знаходимо сусідні точки для оцінки похідної.
+        
         var lo = 0
         var hi = notchSamples.count - 1
         while hi - lo > 1 {
@@ -495,13 +495,13 @@ final class CustomTabBarView: UIView {
         let dx = p1.x - p0.x
         if abs(dx) < 0.0001 { return 0 }
         let dy = p1.y - p0.y
-        // y у notchSamples — це localYOffset, тож кут коректний.
+        
         return atan2(dy, dx)
     }
 
     private func indicatorYOffset(forCenterX x: CGFloat) -> CGFloat {
-        // Точне слідування по кривій заглиблення: інтерполюємо yOffset
-        // по precomputed семплах тієї ж Bézier-кривої.
+        
+        
         guard notchSamples.count >= 2 else { return 0 }
         if x <= notchSamples[0].x { return notchSamples[0].y }
         if x >= notchSamples[notchSamples.count - 1].x { return notchSamples[notchSamples.count - 1].y }
@@ -522,10 +522,10 @@ final class CustomTabBarView: UIView {
     }
 
     private func animateShimmer(from oldTab: TabIdentifier?, to newTab: TabIdentifier) {
-        // Для сегментів shimmer робимо як легку пульсацію яскравості.
+        
         indicatorSegmentsContainer.removeAllAnimations()
 
-        // “Перелив” — швидкий зсув градієнта в межах лінії.
+        
         let pulse = CABasicAnimation(keyPath: "opacity")
         pulse.duration = 0.28
         pulse.fromValue = 0.75
@@ -537,16 +537,16 @@ final class CustomTabBarView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        // Фон TabBar має займати всю ширину екрану (як у старих iOS-версіях),
-        // тому без горизонтальних інсетів.
+        
+        
         let outerInsetX: CGFloat = 0
         let outerInsetTop: CGFloat = 8
         let outerInsetBottom: CGFloat = -35
 
-        // Коли фон опускаємо вниз (negative bottom inset), контент також “їде” вниз через
-        // прив'язки до `barBottomY`. Щоб кнопки виглядали вище — піднімаємо їх на величину,
-        // яка залежить від того, наскільки ми опустили фон.
-        // При `outerInsetBottom = -35` => contentLift ≈ 15.
+        
+        
+        
+        
         let contentLift: CGFloat = max(0, (-outerInsetBottom) - 20)
 
         backgroundView.frame = CGRect(
@@ -557,7 +557,7 @@ final class CustomTabBarView: UIView {
         )
 
         let contentWidth = backgroundView.frame.width
-        let slotCount = items.count // 5
+        let slotCount = items.count 
         let slotWidth = contentWidth / CGFloat(slotCount)
 
         let barTopY = backgroundView.frame.minY
@@ -565,7 +565,7 @@ final class CustomTabBarView: UIView {
 
         indicatorSegmentsContainer.frame = bounds
 
-        // “Яма” під середньою кнопкою: малюємо ввігнуту форму верхнього краю TabBar.
+        
         let centerIndex = items.firstIndex(where: { $0.isCenter }) ?? 0
         let centerX = backgroundView.frame.minX + slotWidth * (CGFloat(centerIndex) + 0.5)
         let localCenterX = centerX - backgroundView.frame.minX
@@ -574,7 +574,7 @@ final class CustomTabBarView: UIView {
         let notchDepth = min(34, max(20, 42 - contentLift))
         let xLeft = max(0, localCenterX - notchWidth / 2)
         let xRight = min(backgroundView.bounds.width, localCenterX + notchWidth / 2)
-        let yTop: CGFloat = 12 // регулює, наскільки “опущена” виямка
+        let yTop: CGFloat = 12 
         let yBottom: CGFloat = yTop + notchDepth
 
         let w = backgroundView.bounds.width
@@ -599,7 +599,7 @@ final class CustomTabBarView: UIView {
         backgroundShapeLayer.path = bgPath.cgPath
         backgroundShapeLayer.frame = backgroundView.bounds
 
-        // Верхній stroke повторює ту ж криву (лише верхній контур).
+        
         let topPath = UIBezierPath()
         topPath.move(to: CGPoint(x: 0, y: 0))
         topPath.addLine(to: CGPoint(x: xLeft, y: 0))
@@ -617,12 +617,12 @@ final class CustomTabBarView: UIView {
         backgroundTopStrokeLayer.path = topPath.cgPath
         backgroundTopStrokeLayer.frame = backgroundView.bounds
 
-        // Зберігаємо геометрію заглиблення в координатах Self (для індикатора).
+        
         self.notchXLeft = backgroundView.frame.minX + xLeft
         self.notchXRight = backgroundView.frame.minX + xRight
         self.notchDepth = notchDepth
 
-        // Семпли кривої заглиблення для індикатора (y = localYOffset, x = координати Self)
+        
         self.notchSamples = makeNotchSamples(
             bgMinX: backgroundView.frame.minX,
             xLeft: xLeft,
@@ -633,11 +633,11 @@ final class CustomTabBarView: UIView {
             notchWidth: notchWidth
         )
 
-        // Лінія підсвітки зверху (як на фото).
+        
         let indicatorY = barTopY + 14 - contentLift
         let indicatorHeight: CGFloat = 3.5
 
-        // Позиціонуємо кнопки, іконки, лейбли, а також слоти для індикатора.
+        
         let iconsDrop: CGFloat = 8
         let labelsLift: CGFloat = 8
         for (index, item) in items.enumerated() {
@@ -646,14 +646,14 @@ final class CustomTabBarView: UIView {
 
             if item.isCenter {
                 let circleSize: CGFloat = 63
-                // Вертикаль кола: базовий зсув від `barTopY`; `centerCircleExtraDown` опускає коло вниз.
+                
                 let circleY = barTopY - 18 - contentLift + centerCircleExtraDown
                 if let circle = centerCircleByTab[tab] {
                     circle.frame = CGRect(x: centerX - circleSize / 2, y: circleY, width: circleSize, height: circleSize)
                     circle.layer.cornerRadius = circleSize / 2
                 }
 
-                // Центральна іконка трохи менша, щоб "список" виглядав акуратно.
+                
                 let iconSize: CGFloat = 22
                 iconViewsByTab[tab]?.frame = CGRect(
                     x: centerX - iconSize / 2,
@@ -662,12 +662,12 @@ final class CustomTabBarView: UIView {
                     height: iconSize
                 )
 
-                // Tap area включає іконку + підпис.
+                
                 let tapH: CGFloat = (barBottomY - barTopY) + 10
                 let tapY = barTopY - 22 + centerCircleExtraDown
                 tapButtonsByTab[tab]?.frame = CGRect(x: centerX - slotWidth / 2, y: tapY, width: slotWidth, height: tapH)
 
-                // Підпис нижче, як на фото.
+                
                 let labelH: CGFloat = 22
                 titleLabelsByTab[tab]?.frame = CGRect(
                     x: centerX - slotWidth / 2,
@@ -676,22 +676,22 @@ final class CustomTabBarView: UIView {
                     height: labelH
                 )
 
-                // Індикація для center — все одно існує, але зазвичай на фото вибрана не вона.
+                
                 let indicatorWidth: CGFloat = 38
                 slotRects[tab] = CGRect(x: centerX - indicatorWidth / 2, y: indicatorY, width: indicatorWidth, height: indicatorHeight)
             } else {
                 let iconSize: CGFloat = tab == .home ? 31 : 26
                 let iconBaseY = barTopY + 22 - contentLift + iconsDrop
-                // Лише «Головна»: трохи більша іконка; піднімаємо, щоб центр лишався на лінії з іншими.
+                
                 let iconY = iconBaseY - (iconSize - 26) / 2
                 iconViewsByTab[tab]?.frame = CGRect(x: centerX - iconSize / 2, y: iconY, width: iconSize, height: iconSize)
 
-                // Tap area.
+                
                 let tapY = barTopY
                 let tapH = barBottomY - barTopY
                 tapButtonsByTab[tab]?.frame = CGRect(x: centerX - slotWidth / 2, y: tapY, width: slotWidth, height: tapH)
 
-                // Підпис.
+                
                 let labelH: CGFloat = 22
                 titleLabelsByTab[tab]?.frame = CGRect(
                     x: centerX - slotWidth / 2,
@@ -705,7 +705,7 @@ final class CustomTabBarView: UIView {
             }
         }
 
-        // Підтягнемо індикатор у поточний стан після layout.
+        
         if let tab = selectedTab {
             setSelectedTab(tab, animated: false)
         }

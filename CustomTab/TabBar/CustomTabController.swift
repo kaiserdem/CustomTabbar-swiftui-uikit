@@ -46,7 +46,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         setupLayout()
         setupNavigationControllers()
 
-        // Відрендеримо стеки для всіх вкладок (root-и).
+        
         for tab in TabIdentifier.allCases {
             setStack(router.stack(for: tab), for: tab, animated: false)
         }
@@ -92,7 +92,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         return vc
     }
 
-    // MARK: - TabNavigator
+    
 
     func selectTab(_ tab: TabIdentifier, animated: Bool) {
         currentTab = tab
@@ -223,7 +223,7 @@ extension CustomTabController: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
         guard let tab = tabByNavController[navigationController] else { return }
 
-        // Синхронізуємо стек у router з фактичним стеком UIKit (back-swipe).
+        
         let stack: [ScreenRoute] = navigationController.viewControllers.compactMap { vc in
             (vc as? ScreenHostingController)?.rootView.screen
         }

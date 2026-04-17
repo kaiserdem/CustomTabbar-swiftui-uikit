@@ -1,12 +1,12 @@
 import Foundation
 
-/// Опис екрана для навігації.
-/// Це **дані**, а не View: можна вільно будувати/міняти стеки без `AnyView`.
+
+
 struct ScreenRoute: Hashable, Identifiable {
     let tab: TabIdentifier
-    /// Стабільний ідентифікатор екрана (може бути рядком з модуля, напр. "home.root").
+    
     let id: String
-    /// Параметри екрана (опційно). Значення — Hashable, щоб `ScreenRoute` був Hashable.
+    
     let params: [String: AnyHashable]
 
     init(tab: TabIdentifier, id: String, params: [String: AnyHashable] = [:]) {
@@ -33,7 +33,7 @@ extension TabIdentifier {
     }
 }
 
-// Зручні конструктори для демо (не обов'язкові для архітектури).
+
 extension ScreenRoute {
     static var homeRoot: ScreenRoute { .init(tab: .home, id: "home.root") }
     static var homeDetails: ScreenRoute { .init(tab: .home, id: "home.details") }

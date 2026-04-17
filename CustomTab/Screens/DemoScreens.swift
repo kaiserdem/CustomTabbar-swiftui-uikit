@@ -200,7 +200,7 @@ struct HomeDetailsView: View {
             }
 
             Button("Назад може бути стандартним pop у цій вкладці") {
-                // Заглушка для UX; back буде з navigation bar.
+                
             }
         }
         .padding()

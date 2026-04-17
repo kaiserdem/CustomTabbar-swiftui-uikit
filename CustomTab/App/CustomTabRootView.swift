@@ -19,7 +19,7 @@ private struct TabControllerHost: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: CustomTabController, context: Context) {
-        // Контейнер слухає router напряму (через navigator), тому тут нічого не треба.
+        
     }
 }
 

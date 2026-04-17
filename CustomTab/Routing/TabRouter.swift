@@ -13,7 +13,7 @@ final class TabRouter: ObservableObject {
         self.stacksByTab = Dictionary(uniqueKeysWithValues: TabIdentifier.allCases.map { ($0, [$0.defaultScreen]) })
     }
 
-    // MARK: - Read
+    
 
     func stack(for tab: TabIdentifier) -> [ScreenRoute] {
         stacksByTab[tab] ?? [tab.defaultScreen]
@@ -23,7 +23,7 @@ final class TabRouter: ObservableObject {
         stack(for: tab).last ?? tab.defaultScreen
     }
 
-    // MARK: - Navigation API
+    
 
     func selectTab(_ tab: TabIdentifier, animated: Bool = true) {
         selectedTab = tab
@@ -37,7 +37,7 @@ final class TabRouter: ObservableObject {
 
     func push(_ screen: ScreenRoute, animated: Bool = true) {
         if screen.tab != selectedTab {
-            // Якщо екран належить іншій вкладці — перемикаємось і замінюємо стек тієї вкладки.
+            
             selectTab(screen.tab, setStack: [screen.tab.defaultScreen, screen], animated: animated)
             return
         }
@@ -59,7 +59,7 @@ final class TabRouter: ObservableObject {
         if stack.isEmpty {
             normalized = [tab.defaultScreen]
         } else {
-            // Гарантуємо коректний tab на всіх елементах.
+            
             normalized = stack.map { ScreenRoute(tab: tab, id: $0.id, params: $0.params) }
         }
 
@@ -78,11 +78,11 @@ final class TabRouter: ObservableObject {
         setStack(stack, for: tab, animated: animated)
     }
 
-    // MARK: - Sync from UIKit
+    
 
-    /// Викликається навігаційним движком (UIKit), коли користувач зробив back-gesture/поп.
+    
     func syncStackFromNavigator(_ stack: [ScreenRoute], for tab: TabIdentifier) {
-        // Не викликаємо navigator назад, тільки оновлюємо стан.
+        
         let normalized = stack.isEmpty ? [tab.defaultScreen] : stack.map { ScreenRoute(tab: tab, id: $0.id, params: $0.params) }
         stacksByTab[tab] = normalized
     }
