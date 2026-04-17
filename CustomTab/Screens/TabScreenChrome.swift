@@ -9,7 +9,7 @@ import SwiftUI
 
 
 enum TabScreenMetrics {
-    static let tabBarViewHeight: CGFloat = 72
+    static let tabBarViewHeight: CGFloat = 82
     
     static let tabBarBottomOffset: CGFloat = 15
     

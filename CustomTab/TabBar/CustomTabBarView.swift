@@ -240,12 +240,12 @@ final class CustomTabBarView: UIView {
             if active {
                 circle.layer.shadowColor = UIColor.systemYellow.cgColor
                 circle.layer.shadowOpacity = 0.75
-                circle.layer.shadowRadius = 18
+                circle.layer.shadowRadius = 14
                 circle.layer.shadowOffset = .zero
             } else {
                 circle.layer.shadowColor = UIColor.black.cgColor
                 circle.layer.shadowOpacity = 0.25
-                circle.layer.shadowRadius = 12
+                circle.layer.shadowRadius = 0
                 circle.layer.shadowOffset = CGSize(width: 0, height: 4)
             }
         }
@@ -477,10 +477,8 @@ final class CustomTabBarView: UIView {
 
     private func indicatorAngle(forCenterX x: CGFloat) -> CGFloat {
         
-        
         guard notchSamples.count >= 2 else { return 0 }
         if x <= notchSamples[0].x || x >= notchSamples[notchSamples.count - 1].x { return 0 }
-
         
         var lo = 0
         var hi = notchSamples.count - 1
@@ -538,16 +536,10 @@ final class CustomTabBarView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        
-        
         let outerInsetX: CGFloat = 0
         let outerInsetTop: CGFloat = 8
         let outerInsetBottom: CGFloat = -35
 
-        
-        
-        
-        
         let contentLift: CGFloat = max(0, (-outerInsetBottom) - 20)
 
         backgroundView.frame = CGRect(
@@ -672,7 +664,7 @@ final class CustomTabBarView: UIView {
                 let labelH: CGFloat = 22
                 titleLabelsByTab[tab]?.frame = CGRect(
                     x: centerX - slotWidth / 2,
-                    y: barBottomY - labelH - 2 - contentLift - 10 - labelsLift,
+                    y: barBottomY - labelH - 2 - contentLift - 20 - labelsLift,
                     width: slotWidth,
                     height: labelH
                 )
@@ -696,7 +688,7 @@ final class CustomTabBarView: UIView {
                 let labelH: CGFloat = 22
                 titleLabelsByTab[tab]?.frame = CGRect(
                     x: centerX - slotWidth / 2,
-                    y: barBottomY - labelH - 2 - contentLift - 10 - labelsLift,
+                    y: barBottomY - labelH - 2 - contentLift - 20 - labelsLift,
                     width: slotWidth,
                     height: labelH
                 )
@@ -824,7 +816,7 @@ final class CustomTabBarView: UIView {
         let rightP2 = CGPoint(x: xRight - notchWidth * 0.25, y: yTop)
         let rightP3 = CGPoint(x: xRight, y: yTop)
 
-        let n = 72
+        let n = 82
         var pts: [CGPoint] = []
         pts.reserveCapacity(n * 2 + 1)
 
