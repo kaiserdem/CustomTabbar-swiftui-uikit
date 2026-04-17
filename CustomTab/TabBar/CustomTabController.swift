@@ -2,7 +2,7 @@
 //  CustomTabController.swift
 //  CustomTab
 //
-//  Created by Yaroslav Golinskiy on 16/04/2026.
+//  Created by Yaroslav Holinskiy on 16/04/2026.
 //
 
 import SwiftUI
@@ -26,7 +26,7 @@ final class CustomTabController: UIViewController, TabNavigator {
 
         let items: [CustomTabBarView.Item] = [
             .init(tab: .home, systemImage: "house", isCenter: false, title: "Головна"),
-            .init(tab: .browse, systemImage: "play", isCenter: false, title: "Лобі"),
+            .init(tab: .browse, systemImage: "play", isCenter: false, title: "Лоббі"),
             .init(tab: .create, systemImage: "list.bullet", isCenter: true, title: "Меню"),
             .init(tab: .notifications, systemImage: "gift", isCenter: false, title: "Бонуси"),
             .init(tab: .profile, systemImage: "person", isCenter: false, title: "Профіль")
@@ -112,6 +112,7 @@ final class CustomTabController: UIViewController, TabNavigator {
         } else {
             syncChromeBackground(with: nav)
         }
+        applyTabBarVisibility(for: nav, animated: animated)
     }
 
     func setStack(_ stack: [ScreenRoute], for tab: TabIdentifier, animated: Bool) {
@@ -171,6 +172,21 @@ final class CustomTabController: UIViewController, TabNavigator {
         view.backgroundColor = .clear
         nav.view.backgroundColor = .clear
     }
+
+    private func applyTabBarVisibility(for nav: UINavigationController, animated: Bool) {
+        let hide = nav.viewControllers.count > 1
+        tabBarView.isUserInteractionEnabled = !hide
+        let applyAlpha = {
+            self.tabBarView.alpha = hide ? 0 : 1
+        }
+        if animated, let coordinator = nav.transitionCoordinator {
+            coordinator.animate(alongsideTransition: { _ in applyAlpha() })
+        } else if animated {
+            UIView.animate(withDuration: 0.25, animations: applyAlpha)
+        } else {
+            applyAlpha()
+        }
+    }
 }
 
 private final class ScreenHostingController: UIHostingController<ScreenHostView> {
@@ -227,6 +243,11 @@ private struct ScreenHostView: View {
 }
 
 extension CustomTabController: UINavigationControllerDelegate {
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        guard navigationController === currentNavController else { return }
+        applyTabBarVisibility(for: navigationController, animated: animated)
+    }
+
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
         guard let tab = tabByNavController[navigationController] else { return }
 
@@ -237,5 +258,8 @@ extension CustomTabController: UINavigationControllerDelegate {
 
         router.syncStackFromNavigator(stack, for: tab)
         syncChromeBackground(with: navigationController)
+        if navigationController === currentNavController {
+            applyTabBarVisibility(for: navigationController, animated: false)
+        }
     }
 }

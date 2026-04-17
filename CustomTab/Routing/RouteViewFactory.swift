@@ -2,7 +2,7 @@
 //  RouteViewFactory.swift
 //  CustomTab
 //
-//  Created by Yaroslav Golinskiy on 16/04/2026.
+//  Created by Yaroslav Holinskiy on 16/04/2026.
 //
 
 import SwiftUI
@@ -37,7 +37,7 @@ enum RouteViewFactory {
 
         default:
             VStack(spacing: 12) {
-                Text("Unknown screen")
+                Text("Невідомий екран")
                     .font(.title3).bold()
                 Text(screen.id)
                     .font(.footnote)

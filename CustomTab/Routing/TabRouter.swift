@@ -2,7 +2,7 @@
 //  TabRouter.swift
 //  CustomTab
 //
-//  Created by Yaroslav Golinskiy on 16/04/2026.
+//  Created by Yaroslav Holinskiy on 16/04/2026.
 //
 
 import Foundation
@@ -14,6 +14,10 @@ final class TabRouter: ObservableObject {
 
     private var stacksByTab: [TabIdentifier: [ScreenRoute]]
     weak var navigator: TabNavigator?
+
+    var reservesTabBarSpace: Bool {
+        stack(for: selectedTab).count <= 1
+    }
 
     init(initialTab: TabIdentifier = .home) {
         self.selectedTab = initialTab
@@ -37,6 +41,10 @@ final class TabRouter: ObservableObject {
         navigator?.selectTab(tab, animated: animated)
     }
 
+    private func stacksDidChange() {
+        objectWillChange.send()
+    }
+
     func selectTab(_ tab: TabIdentifier, setStack stack: [ScreenRoute], animated: Bool = true) {
         setStack(stack, for: tab, animated: false)
         selectTab(tab, animated: animated)
@@ -50,6 +58,7 @@ final class TabRouter: ObservableObject {
         }
 
         stacksByTab[selectedTab, default: [selectedTab.defaultScreen]].append(screen)
+        stacksDidChange()
         navigator?.push(screen, on: selectedTab, animated: animated)
     }
 
@@ -58,6 +67,7 @@ final class TabRouter: ObservableObject {
         guard stack.count > 1 else { return }
         _ = stack.popLast()
         stacksByTab[selectedTab] = stack
+        stacksDidChange()
         navigator?.pop(on: selectedTab, animated: animated)
     }
 
@@ -71,6 +81,7 @@ final class TabRouter: ObservableObject {
         }
 
         stacksByTab[tab] = normalized
+        stacksDidChange()
         navigator?.setStack(normalized, for: tab, animated: animated)
     }
 
@@ -92,6 +103,7 @@ final class TabRouter: ObservableObject {
         
         let normalized = stack.isEmpty ? [tab.defaultScreen] : stack.map { ScreenRoute(tab: tab, id: $0.id, params: $0.params) }
         stacksByTab[tab] = normalized
+        stacksDidChange()
     }
 }
 

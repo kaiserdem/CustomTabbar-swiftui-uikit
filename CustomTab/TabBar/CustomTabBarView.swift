@@ -2,7 +2,7 @@
 //  CustomTabBarView.swift
 //  CustomTab
 //
-//  Created by Yaroslav Golinskiy on 16/04/2026.
+//  Created by Yaroslav Holinskiy on 16/04/2026.
 //
 
 import UIKit
@@ -52,13 +52,9 @@ final class CustomTabBarView: UIView {
     private let centerIconSpinDuration: TimeInterval = 0.32
     private let centerIconScaleDuration: TimeInterval = 0.18
 
-    
     private let centerCircleExtraDown: CGFloat = 0
-
-    
     private let tabBarBackgroundAlpha: CGFloat = 0.78
 
-    
     private var notchXLeft: CGFloat = 0
     private var notchXRight: CGFloat = 0
     private var notchDepth: CGFloat = 0
@@ -92,7 +88,6 @@ final class CustomTabBarView: UIView {
         backgroundShapeLayer.fillColor = UIColor(white: 0.12, alpha: tabBarBackgroundAlpha).cgColor
         backgroundShapeLayer.strokeColor = nil
         backgroundView.layer.insertSublayer(backgroundShapeLayer, at: 0)
-
         
         backgroundTopStrokeLayer.fillColor = UIColor.clear.cgColor
         backgroundTopStrokeLayer.strokeColor = UIColor.white.withAlphaComponent(0.14).cgColor
@@ -115,7 +110,6 @@ final class CustomTabBarView: UIView {
             addSubview(tap)
             tapButtonsByTab[item.tab] = tap
 
-            
             let icon = UIImageView(image: UIImage(systemName: item.systemImage))
             icon.contentMode = .scaleAspectFit
             addSubview(icon)
@@ -135,7 +129,7 @@ final class CustomTabBarView: UIView {
                 circle.layer.cornerRadius = 30
                 circle.layer.shadowColor = UIColor.black.cgColor
                 circle.layer.shadowOpacity = 0.25
-                circle.layer.shadowRadius = 12
+                circle.layer.shadowRadius = 8
                 circle.layer.shadowOffset = CGSize(width: 0, height: 4)
                 circle.isUserInteractionEnabled = false
                 addSubview(circle)

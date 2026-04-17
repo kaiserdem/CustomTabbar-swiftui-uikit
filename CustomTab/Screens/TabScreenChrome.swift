@@ -2,7 +2,7 @@
 //  TabScreenChrome.swift
 //  CustomTab
 //
-//  Created by Yaroslav Golinskiy on 16/04/2026.
+//  Created by Yaroslav Holinskiy on 16/04/2026.
 //
 
 import SwiftUI
@@ -18,6 +18,8 @@ enum TabScreenMetrics {
 
 
 struct TabScreenChrome: ViewModifier {
+    @EnvironmentObject private var router: TabRouter
+
     let background: Color
     
     let allowScrollUnderTabBar: Bool
@@ -34,7 +36,7 @@ struct TabScreenChrome: ViewModifier {
             
             .safeAreaInset(edge: .bottom) {
                 Color.clear
-                    .frame(height: TabScreenMetrics.contentBottomInset)
+                    .frame(height: router.reservesTabBarSpace ? TabScreenMetrics.contentBottomInset : 0)
             }
             .ignoresSafeArea(allowScrollUnderTabBar ? .container : [], edges: allowScrollUnderTabBar ? [.bottom] : [])
             .environment(\.colorScheme, .dark)
