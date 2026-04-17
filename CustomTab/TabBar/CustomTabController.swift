@@ -65,10 +65,9 @@ final class CustomTabController: UIViewController, TabNavigator {
 
             tabBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            // Опускаємо TabBar "в нуль" до нижнього краю екрану.
-            tabBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            // На 20% менша висота, як ти просив.
-            tabBarView.heightAnchor.constraint(equalToConstant: 72)
+            // Трохи вище за нижній край екрану — див. `TabScreenMetrics.tabBarBottomOffset`.
+            tabBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -TabScreenMetrics.tabBarBottomOffset),
+            tabBarView.heightAnchor.constraint(equalToConstant: TabScreenMetrics.tabBarViewHeight)
         ])
     }
 
