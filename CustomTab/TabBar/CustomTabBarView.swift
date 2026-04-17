@@ -232,6 +232,62 @@ final class CustomTabBarView: UIView {
         }
     }
 
+    private func applyCenterGlow(active: Bool, animated: Bool) {
+        guard let circle = centerCircleByTab[.create] else { return }
+
+        let changes = {
+            if active {
+                circle.layer.shadowColor = UIColor.systemYellow.cgColor
+                circle.layer.shadowOpacity = 0.75
+                circle.layer.shadowRadius = 18
+                circle.layer.shadowOffset = .zero
+            } else {
+                circle.layer.shadowColor = UIColor.black.cgColor
+                circle.layer.shadowOpacity = 0.25
+                circle.layer.shadowRadius = 12
+                circle.layer.shadowOffset = CGSize(width: 0, height: 4)
+            }
+        }
+
+        if !animated {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            changes()
+            CATransaction.commit()
+            return
+        }
+
+        let duration: CFTimeInterval = 0.18
+
+        let animOpacity = CABasicAnimation(keyPath: "shadowOpacity")
+        animOpacity.duration = duration
+        animOpacity.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animOpacity.fromValue = circle.layer.shadowOpacity
+
+        let animRadius = CABasicAnimation(keyPath: "shadowRadius")
+        animRadius.duration = duration
+        animRadius.timingFunction = animOpacity.timingFunction
+        animRadius.fromValue = circle.layer.shadowRadius
+
+        let animOffset = CABasicAnimation(keyPath: "shadowOffset")
+        animOffset.duration = duration
+        animOffset.timingFunction = animOpacity.timingFunction
+        animOffset.fromValue = NSValue(cgSize: circle.layer.shadowOffset)
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        changes()
+        CATransaction.commit()
+
+        animOpacity.toValue = circle.layer.shadowOpacity
+        animRadius.toValue = circle.layer.shadowRadius
+        animOffset.toValue = NSValue(cgSize: circle.layer.shadowOffset)
+
+        circle.layer.add(animOpacity, forKey: "centerGlowOpacity")
+        circle.layer.add(animRadius, forKey: "centerGlowRadius")
+        circle.layer.add(animOffset, forKey: "centerGlowOffset")
+    }
+
     // Щоб середня кнопка (яка вище за bounds) все одно ловила дотики,
     // як в підході з custom UITabBar.
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -335,14 +391,17 @@ final class CustomTabBarView: UIView {
                 }
                 pendingMenuHighlight = work
                 DispatchQueue.main.asyncAfter(deadline: .now() + indicatorMoveDuration, execute: work)
+                self.applyCenterGlow(active: true, animated: true)
             } else {
                 setIndicatorHidden(true, animated: false)
                 setMenuTitleHighlighted(true, animated: false)
+                applyCenterGlow(active: true, animated: false)
             }
             return
         } else {
             setIndicatorHidden(false, animated: animated)
             setMenuTitleHighlighted(false, animated: animated)
+            applyCenterGlow(active: false, animated: animated)
         }
 
         let indicatorWidth = targetRect.width * indicatorRibbonWidthScale
