@@ -1,44 +1,43 @@
 import SwiftUI
 
 enum RouteViewFactory {
-    static func makeView(for screen: ScreenRoute, router: TabRouter) -> AnyView {
-        // В’юхи лишаються SwiftUI. Тут лише мапінг `screen.id -> View`.
+    /// Повертає SwiftUI-екран без `AnyView`. `TabRouter` інжектиться зовні через `.environmentObject`.
+    @ViewBuilder
+    static func makeView(for screen: ScreenRoute) -> some View {
         switch screen.id {
         case "home.root":
-            return AnyView(HomeRootView().environmentObject(router))
+            HomeRootView()
         case "home.details":
-            return AnyView(HomeDetailsView().environmentObject(router))
+            HomeDetailsView()
 
         case "browse.root":
-            return AnyView(BrowseRootView().environmentObject(router))
+            BrowseRootView()
         case "browse.details":
-            return AnyView(BrowseDetailsView().environmentObject(router))
+            BrowseDetailsView()
 
         case "create.root":
-            return AnyView(CreateRootView().environmentObject(router))
+            CreateRootView()
 
         case "notifications.root":
-            return AnyView(NotificationsRootView().environmentObject(router))
+            NotificationsRootView()
         case "notifications.details":
-            return AnyView(NotificationsDetailsView().environmentObject(router))
+            NotificationsDetailsView()
 
         case "profile.root":
-            return AnyView(ProfileRootView().environmentObject(router))
+            ProfileRootView()
         case "profile.settings":
-            return AnyView(ProfileSettingsView().environmentObject(router))
+            ProfileSettingsView()
 
         default:
-            return AnyView(
-                VStack(spacing: 12) {
-                    Text("Unknown screen")
-                        .font(.title3).bold()
-                    Text(screen.id)
-                        .font(.footnote)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .padding()
-                .tabScreenChrome(background: Color.black)
-            )
+            VStack(spacing: 12) {
+                Text("Unknown screen")
+                    .font(.title3).bold()
+                Text(screen.id)
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .padding()
+            .tabScreenChrome(background: Color.black)
         }
     }
 }

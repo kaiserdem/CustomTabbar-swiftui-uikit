@@ -86,8 +86,8 @@ final class CustomTabController: UIViewController, TabNavigator {
     }
 
     private func makeHostingController(for screen: ScreenRoute) -> UIViewController {
-        let root = RouteViewFactory.makeView(for: screen, router: router)
-        let vc = ScreenHostingController(screen: screen, rootView: root)
+        let root = ScreenHostView(screen: screen, router: router)
+        let vc = ScreenHostingController(rootView: root)
         vc.view.backgroundColor = .clear
         return vc
     }
@@ -166,11 +166,8 @@ final class CustomTabController: UIViewController, TabNavigator {
     }
 }
 
-private final class ScreenHostingController: UIHostingController<AnyView> {
-    let screen: ScreenRoute
-
-    init(screen: ScreenRoute, rootView: AnyView) {
-        self.screen = screen
+private final class ScreenHostingController: UIHostingController<ScreenHostView> {
+    override init(rootView: ScreenHostView) {
         super.init(rootView: rootView)
         edgesForExtendedLayout = [.top, .bottom, .left, .right]
     }
@@ -210,13 +207,25 @@ private final class ScreenHostingController: UIHostingController<AnyView> {
     }
 }
 
+
+private struct ScreenHostView: View {
+    let screen: ScreenRoute
+    let router: TabRouter
+
+    var body: some View {
+        RouteViewFactory
+            .makeView(for: screen)
+            .environmentObject(router)
+    }
+}
+
 extension CustomTabController: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
         guard let tab = tabByNavController[navigationController] else { return }
 
         // Синхронізуємо стек у router з фактичним стеком UIKit (back-swipe).
         let stack: [ScreenRoute] = navigationController.viewControllers.compactMap { vc in
-            (vc as? ScreenHostingController)?.screen
+            (vc as? ScreenHostingController)?.rootView.screen
         }
 
         router.syncStackFromNavigator(stack, for: tab)
