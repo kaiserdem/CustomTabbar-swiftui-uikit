@@ -1,3 +1,10 @@
+//
+//  CustomTabController.swift
+//  CustomTab
+//
+//  Created by Yaroslav Golinskiy on 16/04/2026.
+//
+
 import SwiftUI
 import UIKit
 
