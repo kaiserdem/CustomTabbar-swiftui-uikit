@@ -12,8 +12,8 @@ enum TabScreenMetrics {
 /// Фон і навбар задає **сам екран** (`background`); заповнення від статус-бару до низу девайсу, включно з-під кастомного таббару.
 struct TabScreenChrome: ViewModifier {
     let background: Color
-    /// Якщо true — контент (особливо ScrollView) може заходити під nav/tab bar.
-    let allowScrollUnderBars: Bool
+    /// Якщо true — контент (особливо ScrollView) може заходити під tab bar (але НЕ під navigation bar).
+    let allowScrollUnderTabBar: Bool
 
     func body(content: Content) -> some View {
         content
@@ -29,7 +29,7 @@ struct TabScreenChrome: ViewModifier {
                 Color.clear
                     .frame(height: TabScreenMetrics.contentBottomInset)
             }
-            .ignoresSafeArea(allowScrollUnderBars ? .container : [], edges: allowScrollUnderBars ? [.top, .bottom] : [])
+            .ignoresSafeArea(allowScrollUnderTabBar ? .container : [], edges: allowScrollUnderTabBar ? [.bottom] : [])
             .environment(\.colorScheme, .dark)
             .toolbarBackground(background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -37,7 +37,7 @@ struct TabScreenChrome: ViewModifier {
 }
 
 extension View {
-    func tabScreenChrome(background: Color, allowScrollUnderBars: Bool = false) -> some View {
-        modifier(TabScreenChrome(background: background, allowScrollUnderBars: allowScrollUnderBars))
+    func tabScreenChrome(background: Color, allowScrollUnderTabBar: Bool = false) -> some View {
+        modifier(TabScreenChrome(background: background, allowScrollUnderTabBar: allowScrollUnderTabBar))
     }
 }

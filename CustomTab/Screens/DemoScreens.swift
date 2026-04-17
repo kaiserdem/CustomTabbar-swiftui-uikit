@@ -180,7 +180,7 @@ struct HomeRootView: View {
             }
             .padding()
         }
-        .tabScreenChrome(background: screenBackground, allowScrollUnderBars: true)
+        .tabScreenChrome(background: screenBackground, allowScrollUnderTabBar: true)
     }
 }
 
