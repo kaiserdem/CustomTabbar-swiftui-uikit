@@ -160,11 +160,11 @@ final class CustomTabBarView: UIView {
     }
 
     private func updateCenterIconForSelection(from oldTab: TabIdentifier?, to newTab: TabIdentifier, animated: Bool) {
-        guard let icon = iconViewsByTab[.create] else { return }
+        guard let icon = iconViewsByTab[.menu] else { return }
 
-        if newTab == .create {
+        if newTab == .menu {
             if animated {
-                guard oldTab != .create else { return }
+                guard oldTab != .menu else { return }
                 animateCenterIconSelect()
             } else if !isCenterIconAnimating {
                 centerIconScale = centerIconActiveScale
@@ -173,7 +173,7 @@ final class CustomTabBarView: UIView {
             return
         }
 
-        guard oldTab == .create else { return }
+        guard oldTab == .menu else { return }
         if animated {
             animateCenterIconDeselect()
         } else if !isCenterIconAnimating {
@@ -187,7 +187,7 @@ final class CustomTabBarView: UIView {
     }
 
     private func animateCenterIconSelect() {
-        guard let icon = iconViewsByTab[.create] else { return }
+        guard let icon = iconViewsByTab[.menu] else { return }
         isCenterIconAnimating = true
         let r1 = centerIconRotation + .pi
         let s0 = centerIconScale
@@ -208,7 +208,7 @@ final class CustomTabBarView: UIView {
     }
 
     private func animateCenterIconDeselect() {
-        guard let icon = iconViewsByTab[.create] else { return }
+        guard let icon = iconViewsByTab[.menu] else { return }
         isCenterIconAnimating = true
         let r1 = centerIconRotation + .pi
         let s0 = centerIconScale
@@ -234,7 +234,7 @@ final class CustomTabBarView: UIView {
     }
 
     private func applyCenterGlow(active: Bool, animated: Bool) {
-        guard let circle = centerCircleByTab[.create] else { return }
+        guard let circle = centerCircleByTab[.menu] else { return }
 
         let changes = {
             if active {
@@ -343,12 +343,12 @@ final class CustomTabBarView: UIView {
 
         
         
-        if tab == .create {
+        if tab == .menu {
             
             setIndicatorHidden(false, animated: animated)
 
             
-            guard let centerRect = slotRects[.create] else { return }
+            guard let centerRect = slotRects[.menu] else { return }
             let indicatorWidth = centerRect.width * indicatorRibbonWidthScale
             let indicatorHeight = max(1.5, centerRect.height * indicatorThicknessScale)
             let targetCenterX = centerRect.midX
@@ -464,7 +464,7 @@ final class CustomTabBarView: UIView {
     }
 
     private func setMenuTitleHighlighted(_ highlighted: Bool, animated: Bool) {
-        guard let label = titleLabelsByTab[.create] else { return }
+        guard let label = titleLabelsByTab[.menu] else { return }
         let target = highlighted ? UIColor.systemYellow : UIColor(white: 0.55, alpha: 1.0)
         if !animated {
             label.textColor = target
@@ -673,7 +673,7 @@ final class CustomTabBarView: UIView {
                 let indicatorWidth: CGFloat = 38
                 slotRects[tab] = CGRect(x: centerX - indicatorWidth / 2, y: indicatorY, width: indicatorWidth, height: indicatorHeight)
             } else {
-                let iconSize: CGFloat = tab == .home ? 31 : 26
+                let iconSize: CGFloat = tab == .main ? 31 : 26
                 let iconBaseY = barTopY + 22 - contentLift + iconsDrop
                 
                 let iconY = iconBaseY - (iconSize - 26) / 2

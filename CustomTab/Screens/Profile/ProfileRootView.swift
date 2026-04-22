@@ -18,12 +18,12 @@ struct ProfileRootView: View {
                 .font(.title2)
                 .bold()
 
-            Button("Налаштування (push)") {
-                router.push(.profileSettings, animated: true)
+            Button("Деталі профілю") {
+                router.push(.profileDetails, animated: true)
             }
 
             Button("Головна: показати деталі") {
-                router.selectTab(.home, setStack: [.homeRoot, .homeDetails], animated: true)
+                router.selectTab(.main, setStack: [.mainRoot, .mainDetails], animated: true)
             }
         }
         .padding()

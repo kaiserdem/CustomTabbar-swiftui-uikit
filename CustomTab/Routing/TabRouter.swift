@@ -19,7 +19,7 @@ final class TabRouter: ObservableObject {
         stack(for: selectedTab).count <= 1
     }
 
-    init(initialTab: TabIdentifier = .home) {
+    init(initialTab: TabIdentifier = .main) {
         self.selectedTab = initialTab
         self.stacksByTab = Dictionary(uniqueKeysWithValues: TabIdentifier.allCases.map { ($0, [$0.defaultScreen]) })
     }

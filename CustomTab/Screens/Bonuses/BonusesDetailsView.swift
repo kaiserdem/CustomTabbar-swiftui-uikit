@@ -1,5 +1,5 @@
 //
-//  BrowseDetailsView.swift
+//  BonusesDetailsView.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-struct BrowseDetailsView: View {
+struct BonusesDetailsView: View {
     @EnvironmentObject private var router: TabRouter
 
-    private let screenBackground = Color(red: 0.05, green: 0.20, blue: 0.14)
+    private let screenBackground = Color(red: 0.22, green: 0.12, blue: 0.07)
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Деталі лоббі")
+            Text("Деталі бонусів")
                 .font(.title2)
                 .bold()
 
-            Button("Головна: показати деталі") {
-                router.selectTab(.home, setStack: [.homeRoot, .homeDetails], animated: true)
+            Button("Відкрити лоббі") {
+                router.selectTab(.lobby, setStack: [.lobbyRoot], animated: true)
             }
         }
         .padding()

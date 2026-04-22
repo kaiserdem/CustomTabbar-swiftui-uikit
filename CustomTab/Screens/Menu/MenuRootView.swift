@@ -1,5 +1,5 @@
 //
-//  CreateRootView.swift
+//  MenuRootView.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CreateRootView: View {
+struct MenuRootView: View {
     @EnvironmentObject private var router: TabRouter
 
     private let screenBackground = Color(red: 0.14, green: 0.07, blue: 0.20)
@@ -18,12 +18,12 @@ struct CreateRootView: View {
                 .font(.title2)
                 .bold()
 
-            Button("Налаштування профілю") {
-                router.selectTab(.profile, setStack: [.profileRoot, .profileSettings], animated: true)
+            Button("Деталі профілю") {
+                router.selectTab(.profile, setStack: [.profileRoot, .profileDetails], animated: true)
             }
 
-            Button("Показати деталі бонусів") {
-                router.push(.notificationsDetails, animated: true)
+            Button("Бонуси: деталі") {
+                router.selectTab(.bonuses, setStack: [.bonusesRoot, .bonusesDetails], animated: true)
             }
         }
         .padding()

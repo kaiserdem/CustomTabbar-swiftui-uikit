@@ -1,5 +1,5 @@
 //
-//  NotificationsDetailsView.swift
+//  ProfileDetailsView.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-struct NotificationsDetailsView: View {
+struct ProfileDetailsView: View {
     @EnvironmentObject private var router: TabRouter
 
-    private let screenBackground = Color(red: 0.22, green: 0.12, blue: 0.07)
+    private let screenBackground = Color(red: 0.08, green: 0.07, blue: 0.26)
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Деталі бонусів")
+            Text("Деталі профілю")
                 .font(.title2)
                 .bold()
 
-            Button("Відкрити лоббі") {
-                router.selectTab(.browse, setStack: [.browseRoot], animated: true)
+            Button("Відкрити меню") {
+                router.selectTab(.menu, setStack: [.menuRoot], animated: true)
             }
         }
         .padding()

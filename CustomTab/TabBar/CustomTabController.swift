@@ -25,10 +25,10 @@ final class CustomTabController: UIViewController, TabNavigator {
         self.currentTab = router.selectedTab
 
         let items: [CustomTabBarView.Item] = [
-            .init(tab: .home, systemImage: "house", isCenter: false, title: "Головна"),
-            .init(tab: .browse, systemImage: "play", isCenter: false, title: "Лоббі"),
-            .init(tab: .create, systemImage: "list.bullet", isCenter: true, title: "Меню"),
-            .init(tab: .notifications, systemImage: "gift", isCenter: false, title: "Бонуси"),
+            .init(tab: .main, systemImage: "house", isCenter: false, title: "Головна"),
+            .init(tab: .lobby, systemImage: "play", isCenter: false, title: "Лоббі"),
+            .init(tab: .menu, systemImage: "list.bullet", isCenter: true, title: "Меню"),
+            .init(tab: .bonuses, systemImage: "gift", isCenter: false, title: "Бонуси"),
             .init(tab: .profile, systemImage: "person", isCenter: false, title: "Профіль")
         ]
 

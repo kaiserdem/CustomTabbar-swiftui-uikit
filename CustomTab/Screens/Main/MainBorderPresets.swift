@@ -1,5 +1,5 @@
 //
-//  HomeBorderPresets.swift
+//  MainBorderPresets.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum HomeBorderPresets {
+enum MainBorderPresets {
     struct Preset: Identifiable {
         let id: String
         let background: Color

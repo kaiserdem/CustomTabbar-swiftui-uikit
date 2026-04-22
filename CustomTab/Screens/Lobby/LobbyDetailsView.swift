@@ -1,5 +1,5 @@
 //
-//  ProfileSettingsView.swift
+//  LobbyDetailsView.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-struct ProfileSettingsView: View {
+struct LobbyDetailsView: View {
     @EnvironmentObject private var router: TabRouter
 
-    private let screenBackground = Color(red: 0.08, green: 0.07, blue: 0.26)
+    private let screenBackground = Color(red: 0.05, green: 0.20, blue: 0.14)
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Налаштування")
+            Text("Деталі лоббі")
                 .font(.title2)
                 .bold()
 
-            Button("Відкрити меню") {
-                router.selectTab(.create, setStack: [.createRoot], animated: true)
+            Button("Головна: показати деталі") {
+                router.selectTab(.main, setStack: [.mainRoot, .mainDetails], animated: true)
             }
         }
         .padding()

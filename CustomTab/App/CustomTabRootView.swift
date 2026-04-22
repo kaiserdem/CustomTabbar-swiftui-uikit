@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CustomTabRootView: View {
-    @StateObject private var router = TabRouter(initialTab: .home)
+    @StateObject private var router = TabRouter(initialTab: .main)
 
     var body: some View {
         TabControllerHost(router: router)

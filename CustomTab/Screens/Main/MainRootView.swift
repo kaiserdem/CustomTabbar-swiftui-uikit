@@ -1,5 +1,5 @@
 //
-//  HomeRootView.swift
+//  MainRootView.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct HomeRootView: View {
+struct MainRootView: View {
     @EnvironmentObject private var router: TabRouter
 
     private let screenBackground = Color(red: 0.07, green: 0.10, blue: 0.24)
 
-    private let presets = HomeBorderPresets.all
+    private let presets = MainBorderPresets.all
 
     @State private var selectedPresetIndex: Int = 0
 
@@ -55,11 +55,11 @@ struct HomeRootView: View {
                                     textColor: preset.animatedBorder,
                                     fontSize: 18
                                 ) {
-                                    router.selectTab(.browse, setStack: [.browseRoot], animated: true)
+                                    router.selectTab(.lobby, setStack: [.lobbyRoot], animated: true)
                                 }
 
                                 Button {
-                                    router.selectTab(.notifications, setStack: [.notificationsRoot], animated: true)
+                                    router.selectTab(.bonuses, setStack: [.bonusesRoot], animated: true)
                                 } label: {
                                     Text("BONUS")
                                         .font(.system(size: 16, weight: .black, design: .rounded))
@@ -110,13 +110,23 @@ struct HomeRootView: View {
                             .foregroundStyle(.white.opacity(0.78))
 
                         HStack(spacing: 10) {
-                            Button("Деталі екрану") {
-                                router.push(.homeDetails, animated: true)
+                            Button {
+                                router.push(.mainDetails, animated: true)
+                            } label: {
+                                Text("Деталі екрану")
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                    .frame(maxWidth: .infinity, minHeight: 60)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.bordered)
 
-                            Button("Налаштування профілю") {
-                                router.selectTab(.profile, setStack: [.profileRoot, .profileSettings], animated: true)
+                            Button {
+                                router.selectTab(.profile, setStack: [.profileRoot, .profileDetails], animated: true)
+                            } label: {
+                                Text("Деталі профілю")
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                    .frame(maxWidth: .infinity, minHeight: 60)
                             }
                             .buttonStyle(.bordered)
                         }

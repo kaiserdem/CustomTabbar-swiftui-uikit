@@ -26,14 +26,14 @@ struct ScreenRoute: Hashable, Identifiable {
 extension TabIdentifier {
     var defaultScreen: ScreenRoute {
         switch self {
-        case .home:
-            return ScreenRoute(tab: .home, id: "home.root")
-        case .browse:
-            return ScreenRoute(tab: .browse, id: "browse.root")
-        case .create:
-            return ScreenRoute(tab: .create, id: "create.root")
-        case .notifications:
-            return ScreenRoute(tab: .notifications, id: "notifications.root")
+        case .main:
+            return ScreenRoute(tab: .main, id: "main.root")
+        case .lobby:
+            return ScreenRoute(tab: .lobby, id: "lobby.root")
+        case .menu:
+            return ScreenRoute(tab: .menu, id: "menu.root")
+        case .bonuses:
+            return ScreenRoute(tab: .bonuses, id: "bonuses.root")
         case .profile:
             return ScreenRoute(tab: .profile, id: "profile.root")
         }
@@ -42,17 +42,17 @@ extension TabIdentifier {
 
 
 extension ScreenRoute {
-    static var homeRoot: ScreenRoute { .init(tab: .home, id: "home.root") }
-    static var homeDetails: ScreenRoute { .init(tab: .home, id: "home.details") }
+    static var mainRoot: ScreenRoute { .init(tab: .main, id: "main.root") }
+    static var mainDetails: ScreenRoute { .init(tab: .main, id: "main.details") }
 
-    static var browseRoot: ScreenRoute { .init(tab: .browse, id: "browse.root") }
-    static var browseDetails: ScreenRoute { .init(tab: .browse, id: "browse.details") }
+    static var lobbyRoot: ScreenRoute { .init(tab: .lobby, id: "lobby.root") }
+    static var lobbyDetails: ScreenRoute { .init(tab: .lobby, id: "lobby.details") }
 
-    static var createRoot: ScreenRoute { .init(tab: .create, id: "create.root") }
+    static var menuRoot: ScreenRoute { .init(tab: .menu, id: "menu.root") }
 
-    static var notificationsRoot: ScreenRoute { .init(tab: .notifications, id: "notifications.root") }
-    static var notificationsDetails: ScreenRoute { .init(tab: .notifications, id: "notifications.details") }
+    static var bonusesRoot: ScreenRoute { .init(tab: .bonuses, id: "bonuses.root") }
+    static var bonusesDetails: ScreenRoute { .init(tab: .bonuses, id: "bonuses.details") }
 
     static var profileRoot: ScreenRoute { .init(tab: .profile, id: "profile.root") }
-    static var profileSettings: ScreenRoute { .init(tab: .profile, id: "profile.settings") }
+    static var profileDetails: ScreenRoute { .init(tab: .profile, id: "profile.details") }
 }

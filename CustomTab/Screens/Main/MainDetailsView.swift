@@ -1,5 +1,5 @@
 //
-//  HomeDetailsView.swift
+//  MainDetailsView.swift
 //  CustomTab
 //
 //  Created by Yaroslav Holinskiy on 16/04/2026.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct HomeDetailsView: View {
+struct MainDetailsView: View {
     @EnvironmentObject private var router: TabRouter
 
     private let screenBackground = Color(red: 0.09, green: 0.12, blue: 0.28)
@@ -19,11 +19,11 @@ struct HomeDetailsView: View {
                 .bold()
 
             Button("Лоббі: деталі в іншій вкладці") {
-                router.selectTab(.browse, setStack: [.browseRoot, .browseDetails], animated: true)
+                router.selectTab(.lobby, setStack: [.lobbyRoot, .lobbyDetails], animated: true)
             }
 
-            Button("Назад може бути стандартним pop у цій вкладці") {
-
+            Button("Назад") {
+                router.pop(animated: true)
             }
         }
         .padding()

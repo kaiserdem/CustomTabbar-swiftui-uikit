@@ -12,28 +12,28 @@ enum RouteViewFactory {
     @ViewBuilder
     static func makeView(for screen: ScreenRoute) -> some View {
         switch screen.id {
-        case "home.root":
-            HomeRootView()
-        case "home.details":
-            HomeDetailsView()
+        case "main.root":
+            MainRootView()
+        case "main.details":
+            MainDetailsView()
 
-        case "browse.root":
-            BrowseRootView()
-        case "browse.details":
-            BrowseDetailsView()
+        case "lobby.root":
+            LobbyRootView()
+        case "lobby.details":
+            LobbyDetailsView()
 
-        case "create.root":
-            CreateRootView()
+        case "menu.root":
+            MenuRootView()
 
-        case "notifications.root":
-            NotificationsRootView()
-        case "notifications.details":
-            NotificationsDetailsView()
+        case "bonuses.root":
+            BonusesRootView()
+        case "bonuses.details":
+            BonusesDetailsView()
 
         case "profile.root":
             ProfileRootView()
-        case "profile.settings":
-            ProfileSettingsView()
+        case "profile.details":
+            ProfileDetailsView()
 
         default:
             VStack(spacing: 12) {
