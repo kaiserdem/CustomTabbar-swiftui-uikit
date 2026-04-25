@@ -94,6 +94,10 @@ These screens are intentionally simple and exist only to demonstrate navigation 
 
 - **SwiftUI**
 - **UIKit**
-- **Foundation**
 - **Observation** (Swift `@Observable`)
+
+## Minimum supported versions
+
+- **iOS**: 17.0+ (uses Observation `@Observable` and typed environment injection)
+- **Xcode**: 15+ recommended
 
