@@ -25,11 +25,11 @@ final class CustomTabController: UIViewController, TabNavigator {
         self.currentTab = router.selectedTab
 
         let items: [CustomTabBarView.Item] = [
-            .init(tab: .main, systemImage: "house", isCenter: false, title: "Головна"),
-            .init(tab: .lobby, systemImage: "play", isCenter: false, title: "Лоббі"),
-            .init(tab: .menu, systemImage: "list.bullet", isCenter: true, title: "Меню"),
-            .init(tab: .bonuses, systemImage: "gift", isCenter: false, title: "Бонуси"),
-            .init(tab: .profile, systemImage: "person", isCenter: false, title: "Профіль")
+            .init(tab: .main, systemImage: "house", isCenter: false, title: "Main"),
+            .init(tab: .lobby, systemImage: "play", isCenter: false, title: "Lobby"),
+            .init(tab: .menu, systemImage: "list.bullet", isCenter: true, title: "Menu"),
+            .init(tab: .bonuses, systemImage: "gift", isCenter: false, title: "Bonuses"),
+            .init(tab: .profile, systemImage: "person", isCenter: false, title: "Profile")
         ]
 
         self.tabBarView = CustomTabBarView(
@@ -238,7 +238,7 @@ private struct ScreenHostView: View {
     var body: some View {
         RouteViewFactory
             .makeView(for: screen)
-            .environmentObject(router)
+            .environment(router)
     }
 }
 

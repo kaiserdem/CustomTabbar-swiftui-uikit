@@ -125,7 +125,7 @@ final class CustomTabBarView: UIView {
 
             if item.isCenter {
                 let circle = UIView()
-                circle.backgroundColor = UIColor.systemYellow
+                circle.backgroundColor = UIColor.systemOrange
                 circle.layer.cornerRadius = 30
                 circle.layer.shadowColor = UIColor.black.cgColor
                 circle.layer.shadowOpacity = 0.25
@@ -238,7 +238,7 @@ final class CustomTabBarView: UIView {
 
         let changes = {
             if active {
-                circle.layer.shadowColor = UIColor.systemYellow.cgColor
+                circle.layer.shadowColor = UIColor.systemOrange.cgColor
                 circle.layer.shadowOpacity = 0.75
                 circle.layer.shadowRadius = 14
                 circle.layer.shadowOffset = .zero
@@ -307,7 +307,7 @@ final class CustomTabBarView: UIView {
         selectedTab = tab
 
         
-        let selectedColor = UIColor.systemYellow
+        let selectedColor = UIColor.systemOrange
         let unselectedColor = UIColor(white: 0.55, alpha: 1.0)
 
         
@@ -465,7 +465,7 @@ final class CustomTabBarView: UIView {
 
     private func setMenuTitleHighlighted(_ highlighted: Bool, animated: Bool) {
         guard let label = titleLabelsByTab[.menu] else { return }
-        let target = highlighted ? UIColor.systemYellow : UIColor(white: 0.55, alpha: 1.0)
+        let target = highlighted ? UIColor.systemOrange : UIColor(white: 0.55, alpha: 1.0)
         if !animated {
             label.textColor = target
             return
@@ -708,7 +708,7 @@ final class CustomTabBarView: UIView {
         if !indicatorSegments.isEmpty { return }
         for _ in 0..<indicatorSegmentsCount {
             let seg = CALayer()
-            seg.backgroundColor = UIColor.systemYellow.cgColor
+            seg.backgroundColor = UIColor.systemOrange.cgColor
             indicatorSegmentsContainer.addSublayer(seg)
             indicatorSegments.append(seg)
         }

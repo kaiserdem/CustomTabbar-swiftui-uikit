@@ -8,17 +8,17 @@
 import SwiftUI
 
 struct ProfileDetailsView: View {
-    @EnvironmentObject private var router: TabRouter
+    @Environment(TabRouter.self) private var router
 
     private let screenBackground = Color(red: 0.08, green: 0.07, blue: 0.26)
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Деталі профілю")
+            Text("Profile details")
                 .font(.title2)
                 .bold()
 
-            Button("Відкрити меню") {
+            Button("Open menu") {
                 router.selectTab(.menu, setStack: [.menuRoot], animated: true)
             }
         }

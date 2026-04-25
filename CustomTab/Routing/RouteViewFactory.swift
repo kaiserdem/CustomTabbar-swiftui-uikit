@@ -37,7 +37,7 @@ enum RouteViewFactory {
 
         default:
             VStack(spacing: 12) {
-                Text("Невідомий екран")
+                Text("Unknown screen")
                     .font(.title3).bold()
                 Text(screen.id)
                     .font(.footnote)

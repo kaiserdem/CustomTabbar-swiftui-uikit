@@ -8,17 +8,17 @@
 import SwiftUI
 
 struct BonusesDetailsView: View {
-    @EnvironmentObject private var router: TabRouter
+    @Environment(TabRouter.self) private var router
 
     private let screenBackground = Color(red: 0.22, green: 0.12, blue: 0.07)
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Деталі бонусів")
+            Text("Bonuses details")
                 .font(.title2)
                 .bold()
 
-            Button("Відкрити лоббі") {
+            Button("Open lobby") {
                 router.selectTab(.lobby, setStack: [.lobbyRoot], animated: true)
             }
         }

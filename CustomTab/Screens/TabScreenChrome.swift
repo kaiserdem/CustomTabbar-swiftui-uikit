@@ -18,7 +18,7 @@ enum TabScreenMetrics {
 
 
 struct TabScreenChrome: ViewModifier {
-    @EnvironmentObject private var router: TabRouter
+    @Environment(TabRouter.self) private var router
 
     let background: Color
     
